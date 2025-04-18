@@ -1,0 +1,25 @@
+# Dexi Drone Configuration
+
+# Drone parameters
+drone:
+  name: "dexi"
+  type: "quadcopter"
+  
+# Control parameters
+control:
+  max_velocity: 2.0  # m/s
+  max_acceleration: 1.0  # m/s²
+  max_angular_velocity: 1.0  # rad/s
+  
+# Sensor parameters
+sensors:
+  imu:
+    rate: 100  # Hz
+  camera:
+    rate: 30  # Hz
+    resolution: [640, 480]
+  
+# Network parameters
+network:
+  mavlink_port: 14550
+  mavlink_baudrate: 57600 
