@@ -3,14 +3,13 @@
 <package format="3">
   <name>dexi_bringup</name>
   <version>0.0.1</version>
-  <description>Bringup package for the Dexi drone</description>
-  <maintainer email="your.email@example.com">Your Name</maintainer>
-  <license>Apache License 2.0</license>
+  <description>Bringup package for the DEXI drone</description>
+  <maintainer email="db@droneblocks.io">Dennis Baldwin</maintainer>
+  <license>MIT</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
 
   <depend>launch</depend>
-  <depend>launch_ros</depend>
   <depend>dexi_led</depend>
   <depend>apriltag_ros</depend>
   <depend>dexi_cpp</depend>
@@ -19,6 +18,6 @@
   <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_cmake</build_type>
+    <build_type>ament_python</build_type>
   </export>
 </package> 
