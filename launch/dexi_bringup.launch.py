@@ -19,13 +19,29 @@ def generate_launch_description():
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
     
-    # Include rosbridge server launch file
-    rosbridge_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('rosbridge_server'), 'launch', 'rosbridge_websocket_launch.xml')
-        ])
+    # Create rosbridge websocket node
+    rosbridge_websocket = Node(
+        package='rosbridge_server',
+        executable='rosbridge_websocket',
+        name='rosbridge_websocket',
+        parameters=[{
+            'port': 9090,
+            'address': '',
+            'ssl': False,
+            'certfile': '',
+            'keyfile': '',
+            'authenticate': False,
+        }]
     )
-    ld.add_action(rosbridge_launch)
+    ld.add_action(rosbridge_websocket)
+    
+    # Create rosapi node
+    rosapi = Node(
+        package='rosapi',
+        executable='rosapi_node',
+        name='rosapi',
+    )
+    ld.add_action(rosapi)
     
     # Include LED service launch file
     led_launch = IncludeLaunchDescription(
