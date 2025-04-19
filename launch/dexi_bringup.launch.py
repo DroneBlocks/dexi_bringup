@@ -56,6 +56,18 @@ def generate_launch_description():
         package='apriltag_ros',
         executable='apriltag_node',
         name='apriltag_node',
+        remappings=[
+            ('image_rect', '/cam0/image_raw'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed'),
+            ('camera_info', '/cam0/camera_info')
+        ],
+        parameters=[{
+            'image_transport': 'compressed',
+            'image_topic': '/cam0/image_raw/compressed',
+            'camera_info_topic': '/cam0/camera_info',
+            'tag_family': '36h11',  # Standard AprilTag family
+            'tag_size': 0.1,  # Size of the tag in meters
+        }],
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
