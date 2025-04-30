@@ -64,3 +64,13 @@ repositories:
     type: git
     url: https://github.com/px4/px4_msgs
     version: main
+
+  micro-ROS-Agent:
+    type: git
+    url: https://github.com/micro-ROS/micro-ROS-Agent
+    version: jazzy
+
+  micro_ros_msgs:
+    type: git
+    url: https://github.com/micro-ROS/micro_ros_msgs
+    version: jazzy
