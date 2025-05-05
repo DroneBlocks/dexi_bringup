@@ -2,14 +2,6 @@
 # http://rptl.io/configtxt
 # Some settings may impact device functionality. See link above for details
 
-# Uncomment some or all of these to enable the optional hardware interfaces
-#dtparam=i2c_arm=on
-#dtparam=i2s=on
-dtoverlay=spi1-1cs # SPI1 on GPIO 20 for LED control
-
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
-
 # Additional overlays and parameters are documented
 # /boot/firmware/overlays/README
 
@@ -49,6 +41,15 @@ otg_mode=1
 dtoverlay=dwc2,dr_mode=host
 
 [all]
-enable_uart=1 # Enable uart0 on Pi5 (GPIO 14/15 - Pins 8/10)
-dtoverlay=uart3-pi5 # Enable uart3 on Pi5 (GPIO 8/9 - Pins 24/21)
+# Enable uart0 on Pi5 (GPIO 14/15 - Pins 8/10)
+# mavlink-router /dev/serial0
+enable_uart=1
+
+# Enable uart3 on Pi5 (GPIO 8/9 - Pins 24/21)
+# micro_ros_agent /dev/ttyAMA3
+dtoverlay=uart3-pi5
+
+# SPI1 on GPIO 20 for LED control
+dtoverlay=spi1-1cs 
+
 dtoverlay=disable-bt
