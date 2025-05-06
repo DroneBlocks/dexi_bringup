@@ -18,6 +18,17 @@ def generate_launch_description():
     apriltags = LaunchConfiguration('apriltags', default='false')
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
+    ros2 = LaunchConfiguration('ros2', default='true')
+    
+    # Create micro_ros_agent node
+    micro_ros_agent = Node(
+        package='micro_ros_agent',
+        executable='micro_ros_agent',
+        name='micro_ros_agent',
+        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '921600'],
+        condition=IfCondition(ros2)
+    )
+    ld.add_action(micro_ros_agent)
     
     # Create rosbridge websocket node
     rosbridge_websocket = Node(
@@ -31,7 +42,8 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
-        }]
+        }],
+        condition=IfCondition(ros2)
     )
     ld.add_action(rosbridge_websocket)
     
