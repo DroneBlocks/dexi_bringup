@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 source /home/dexi/ros2_jazzy/install/setup.bash
 source /home/dexi/dexi_ws/install/setup.bash
