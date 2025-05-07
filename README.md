@@ -46,7 +46,7 @@ To run the DEXI bringup launch file automatically on boot:
 
 1. Copy the service file to systemd:
 ```bash
-sudo cp systemd/dexi.service /etc/systemd/system/
+sudo cp scripts/dexi.service /etc/systemd/system/
 ```
 
 2. Reload systemd to recognize the new service:
@@ -85,4 +85,17 @@ sudo systemctl disable dexi.service
 ```
 
 Note: The service runs as root user and requires ROS2 Jazzy to be installed in the default location (/opt/ros/jazzy).
+
+## Package-Specific Dependencies
+
+To install dependencies for a specific package (e.g., micro_ros_agent) without installing dependencies for the entire workspace:
+
+```bash
+rosdep install --from-paths src/micro_ros_agent --ignore-src -y
+```
+
+Replace `micro_ros_agent` with the name of your target package. This command will:
+- Only install dependencies for the specified package
+- Skip packages that are already installed
+- Automatically answer 'yes' to prompts (-y flag)
 
