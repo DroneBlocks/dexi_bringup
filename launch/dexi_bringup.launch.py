@@ -19,6 +19,7 @@ def generate_launch_description():
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
     ros2 = LaunchConfiguration('ros2', default='true')
+    camera = LaunchConfiguration('camera', default='true')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
@@ -101,5 +102,14 @@ def generate_launch_description():
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
+    
+    # Camera launch file
+    camera_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_camera'), 'launch', 'camera.launch.py')
+        ]),
+        condition=IfCondition(camera)
+    )
+    ld.add_action(camera_launch)
     
     return ld 
