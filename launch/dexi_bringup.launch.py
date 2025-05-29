@@ -106,7 +106,7 @@ def generate_launch_description():
     # Camera launch file
     camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_camera'), 'launch', 'camera.launch.py')
+            os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
         ]),
         condition=IfCondition(camera)
     )
