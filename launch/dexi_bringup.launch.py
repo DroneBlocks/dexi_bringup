@@ -64,6 +64,15 @@ def generate_launch_description():
     )
     ld.add_action(led_launch)
     
+    # Camera launch file
+    camera_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
+        ]),
+        condition=IfCondition(camera)
+    )
+    ld.add_action(camera_launch)
+    
     # AprilTag node
     apriltag_node = Node(
         package='apriltag_ros',
@@ -85,6 +94,16 @@ def generate_launch_description():
     )
     ld.add_action(apriltag_node)
     
+    # Throttle node for detections
+    throttle_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='throttle_node',
+        arguments=['messages', '/detections', '1', '/throttled/detections'],
+        condition=IfCondition(apriltags)
+    )
+    ld.add_action(throttle_node)
+    
     # Servo controller launch file
     servo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -102,14 +121,5 @@ def generate_launch_description():
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
-    
-    # Camera launch file
-    camera_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
-        ]),
-        condition=IfCondition(camera)
-    )
-    ld.add_action(camera_launch)
     
     return ld 
