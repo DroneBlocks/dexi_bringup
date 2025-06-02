@@ -74,3 +74,8 @@ repositories:
     type: git
     url: https://github.com/micro-ROS/micro_ros_msgs
     version: jazzy
+
+  topic_tools:
+    type: git
+    url: https://github.com/ros-tooling/topic_tools
+    version: jazzy
