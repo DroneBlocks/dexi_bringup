@@ -27,3 +27,9 @@ dtoverlay=uart3-pi5
 
 # SPI1 on GPIO 20 for LED control
 dtoverlay=spi1-1cs
+
+# Enable i2c-1 (GPIO 2/3 - Pins 3/5 - /dev/i2c-1)
+dtparam=i2c_arm=on
+
+# Enable i2c-2 (GPIO 4/5 - Pins 7/29 - /dev/i2c-2)
+dtoverlay=i2c2,pins_4_5
