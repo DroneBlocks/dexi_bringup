@@ -15,6 +15,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_interfaces
     version: main
 
+  dexi_camera:
+    type: git
+    url: https://github.com/DroneBlocks/dexi_camera
+    version: main
+
   apriltag:
     type: git
     url: https://github.com/AprilRobotics/apriltag
