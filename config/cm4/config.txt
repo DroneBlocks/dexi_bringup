@@ -1,0 +1,28 @@
+# General Purpose UART External
+dtoverlay=uart3,ctsrts
+
+# Telem2 to FC
+dtoverlay=uart4,ctsrts
+
+# Drive USB Hub nRESET high
+gpio=26=op,dh
+
+# Drive FMU_RST_REQ low
+gpio=25=op,dl
+
+# Drive USB_OTG_FS_VBUS high to enable FC USB
+gpio=27=op,dh
+
+# Disable Gigabit Ethernet, it can only do 100Mbps
+dtoverlay=cm4-disable-gigabit-ethernet
+
+dtoverlay=imx219,cam0
+dtoverlay=imx219,cam1
+
+dtoverlay=gpio-fan,gpiopin=19
+
+# Disable SPI for now because it renders /dev/ttyAMA2 useless, which is where we get serial telem for ROS2
+dtparam=spi=off
+
+# Enable CM4 external antenna
+dtparam=ant2
