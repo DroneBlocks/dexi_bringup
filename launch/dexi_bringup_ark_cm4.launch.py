@@ -75,9 +75,10 @@ def generate_launch_description():
         ],
         parameters=[{
             'camera': '/base/soc/i2c0mux/i2c@1/imx219@10',  # Specify the camera device
-            'format': 'XRGB8888',  # Specify pixel format to avoid auto-selection warning
-            'width': 1280,  # Specify width to avoid auto-selection warning
-            'height': 720,  # Specify height to avoid auto-selection warning
+            'format': 'XRGB8888',
+            'width': 640,
+            'height': 480, 
+            'jpeg_quality': 60,
             'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_2.1_csi.yaml'),  # Use calibration file from dexi_camera package
             'frame_id': 'camera',
             'camera_name': 'cam0'
