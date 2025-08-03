@@ -20,6 +20,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_camera
     version: main
 
+  ros2_pca9685:
+    type: git
+    url: https://github.com/dbaldwin/ros2_pca9685
+    version: main
+
   apriltag:
     type: git
     url: https://github.com/AprilRobotics/apriltag
