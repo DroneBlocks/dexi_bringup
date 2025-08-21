@@ -26,3 +26,6 @@ dtparam=spi=off
 
 # Enable CM4 external antenna
 dtparam=ant2
+
+# Enable USB host mode for flight controller connection
+dtoverlay=dwc2,dr_mode=host
