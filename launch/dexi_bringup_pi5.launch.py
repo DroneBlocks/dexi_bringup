@@ -18,7 +18,7 @@ def generate_launch_description():
     apriltags = LaunchConfiguration('apriltags', default='false')
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
-    ros2 = LaunchConfiguration('ros2', default='true')
+    rosbridge = LaunchConfiguration('rosbridge', default='false')
     camera = LaunchConfiguration('camera', default='true')
     
     # Create micro_ros_agent node
@@ -27,7 +27,7 @@ def generate_launch_description():
         executable='micro_ros_agent',
         name='micro_ros_agent',
         arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '921600'],
-        condition=IfCondition(ros2)
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(micro_ros_agent)
     
@@ -44,7 +44,7 @@ def generate_launch_description():
             'keyfile': '',
             'authenticate': False,
         }],
-        condition=IfCondition(ros2)
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(rosbridge_websocket)
     
@@ -53,6 +53,7 @@ def generate_launch_description():
         package='rosapi',
         executable='rosapi_node',
         name='rosapi',
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(rosapi)
     

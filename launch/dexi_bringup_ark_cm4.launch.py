@@ -18,8 +18,9 @@ def generate_launch_description():
     apriltags = LaunchConfiguration('apriltags', default='false')
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
-    ros2 = LaunchConfiguration('ros2', default='false')
+    rosbridge = LaunchConfiguration('rosbridge', default='false')
     camera = LaunchConfiguration('camera', default='true')
+    yolo = LaunchConfiguration('yolo', default='false')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
@@ -27,7 +28,7 @@ def generate_launch_description():
         executable='micro_ros_agent',
         name='micro_ros_agent',
         arguments=['serial', '--dev', '/dev/ttyAMA2', '-b', '3000000'],
-        condition=IfCondition(ros2)
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(micro_ros_agent)
     
@@ -44,7 +45,7 @@ def generate_launch_description():
             'keyfile': '',
             'authenticate': False,
         }],
-        condition=IfCondition(ros2)
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(rosbridge_websocket)
     
@@ -53,6 +54,7 @@ def generate_launch_description():
         package='rosapi',
         executable='rosapi_node',
         name='rosapi',
+        condition=IfCondition(rosbridge)
     )
     ld.add_action(rosapi)
     
@@ -135,5 +137,14 @@ def generate_launch_description():
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
+    
+    # YOLO node
+    yolo_node = Node(
+        package='dexi_yolo',
+        executable='dexi_yolo_node_onnx.py',
+        name='dexi_yolo_node',
+        condition=IfCondition(yolo)
+    )
+    ld.add_action(yolo_node)
     
     return ld 
