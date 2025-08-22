@@ -20,6 +20,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_camera
     version: main
 
+  dexi_yolo:
+    type: git
+    url: https://github.com/droneblocks/dexi_yolo
+    version: main
+
   ros2_pca9685:
     type: git
     url: https://github.com/dbaldwin/ros2_pca9685
