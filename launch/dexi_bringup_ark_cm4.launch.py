@@ -76,7 +76,6 @@ def generate_launch_description():
             ('camera_info', '/cam0/camera_info')
         ],
         parameters=[{
-            'camera': '/base/soc/i2c0mux/i2c@1/imx219@10',  # Specify the camera device
             'format': 'XRGB8888',
             'width': 320,
             'height': 240, 
