@@ -57,10 +57,10 @@ def generate_launch_description():
     )
     ld.add_action(rosapi)
     
-    # Include LED service launch file
+    # Include Pi5 LED service launch file
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service.launch.py')
+            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
         ])
     )
     ld.add_action(led_launch)
