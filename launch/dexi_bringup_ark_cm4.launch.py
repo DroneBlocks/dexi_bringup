@@ -27,7 +27,7 @@ def generate_launch_description():
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent',
-        arguments=['serial', '--dev', '/dev/ttyAMA2', '-b', '3000000'],
+        arguments=['serial', '--dev', '/dev/ttyAMA4', '-b', '921600'],
         condition=IfCondition(rosbridge)
     )
     ld.add_action(micro_ros_agent)
