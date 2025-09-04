@@ -18,7 +18,7 @@ def generate_launch_description():
     apriltags = LaunchConfiguration('apriltags', default='false')
     servos = LaunchConfiguration('servos', default='false')
     gpio = LaunchConfiguration('gpio', default='false')
-    rosbridge = LaunchConfiguration('rosbridge', default='false')
+    rosbridge = LaunchConfiguration('rosbridge', default='true')
     camera = LaunchConfiguration('camera', default='true')
     
     # Create micro_ros_agent node
