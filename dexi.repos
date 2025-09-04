@@ -78,7 +78,7 @@ repositories:
   px4_msgs:
     type: git
     url: https://github.com/px4/px4_msgs
-    version: main
+    version: release/1.16
 
   micro-ROS-Agent:
     type: git
