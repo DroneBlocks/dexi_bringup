@@ -1,11 +1,14 @@
 [Unit]
-Description="A service to run the DEXI ros launch file at boot"
+Description=DEXI ROS2 Bringup Service
 
 [Service]
 Type=simple
 User=root
+Environment="HOME=/home/dexi"
+WorkingDirectory=/home/dexi
 ExecStart=/home/dexi/dexi_ws/src/dexi_bringup/scripts/start.bash
-StandardOutput=syslog
+StandardOutput=journal
+StandardError=journal
 Restart=on-failure
 
 [Install]
