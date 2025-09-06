@@ -9,7 +9,7 @@ nodes:
     enabled: true
     type: "auto"  # auto, usb, csi
   apriltag:
-    enabled: true
+    enabled: false
     max_tags: 10
   led:
     enabled: true
