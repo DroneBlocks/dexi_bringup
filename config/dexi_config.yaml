@@ -1,0 +1,20 @@
+# DEXI Default Configuration
+# Copy this file to /home/dexi/.dexi-config.yaml to customize
+
+nodes:
+  yolo:
+    enabled: false
+    confidence_threshold: 0.5
+  camera:
+    enabled: true
+    type: "auto"  # auto, usb, csi
+  apriltag:
+    enabled: true
+    max_tags: 10
+  led:
+    enabled: true
+    brightness: 0.8
+
+system:
+  debug_mode: false
+  log_level: "info"
