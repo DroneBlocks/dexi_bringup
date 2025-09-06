@@ -33,18 +33,19 @@ get_config_value() {
 YOLO_ENABLED=$(get_config_value "yolo" "false")
 APRILTAG_ENABLED=$(get_config_value "apriltag" "false")  
 CAMERA_ENABLED=$(get_config_value "camera" "true")
+ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "false")
 
 # Detect hardware type from device tree model
 HARDWARE_MODEL=$(cat /proc/device-tree/model 2>/dev/null || echo "unknown")
 
-echo "Configuration loaded: yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, camera=$CAMERA_ENABLED"
+echo "Configuration loaded: yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, camera=$CAMERA_ENABLED, rosbridge=$ROSBRIDGE_ENABLED"
 
 if [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
     echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
-    ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED
+    ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 elif [[ $HARDWARE_MODEL == *"Raspberry Pi 5"* ]]; then
     echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED
+    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 else
     echo "Unknown hardware: $HARDWARE_MODEL - no launch file specified for this platform"
 fi
