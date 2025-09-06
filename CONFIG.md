@@ -16,8 +16,10 @@ nano ~/.dexi-config.yaml
 
 ### 3. Apply Changes
 ```bash
+# Restart DEXI service to apply changes (recommended)
 sudo systemctl restart dexi.service
-# OR for safest approach:
+
+# OR reboot if needed
 sudo reboot
 ```
 
