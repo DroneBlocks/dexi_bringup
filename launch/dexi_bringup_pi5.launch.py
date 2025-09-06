@@ -20,6 +20,7 @@ def generate_launch_description():
     gpio = LaunchConfiguration('gpio', default='false')
     rosbridge = LaunchConfiguration('rosbridge', default='true')
     camera = LaunchConfiguration('camera', default='true')
+    yolo = LaunchConfiguration('yolo', default='false')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
@@ -122,5 +123,14 @@ def generate_launch_description():
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
+    
+    # YOLO node
+    yolo_node = Node(
+        package='dexi_yolo',
+        executable='dexi_yolo_node_onnx.py',
+        name='dexi_yolo_node',
+        condition=IfCondition(yolo)
+    )
+    ld.add_action(yolo_node)
     
     return ld 
