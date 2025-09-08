@@ -81,12 +81,12 @@ def generate_launch_description():
         name='apriltag_node',
         remappings=[
             ('image_rect', '/cam0/image_raw'),
-            ('image_rect/compressed', '/cam0/image_raw/compressed'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
             ('camera_info', '/cam0/camera_info')
         ],
         parameters=[{
             'image_transport': 'compressed',
-            'image_topic': '/cam0/image_raw/compressed',
+            'image_topic': '/cam0/image_raw/compressed_2hz',
             'camera_info_topic': '/cam0/camera_info',
             'tag_family': '36h11',  # Standard AprilTag family
             'tag_size': 0.1,  # Size of the tag in meters
@@ -94,6 +94,16 @@ def generate_launch_description():
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+    
+    # Image throttle node for 2fps - reduces bandwidth for YOLO and AprilTag
+    image_throttle_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_node)
     
     # Throttle node for detections
     throttle_node = Node(
@@ -128,6 +138,9 @@ def generate_launch_description():
         package='dexi_yolo',
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
+        remappings=[
+            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz')
+        ],
         condition=IfCondition(yolo)
     )
     ld.add_action(yolo_node)
