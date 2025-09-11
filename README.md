@@ -218,3 +218,7 @@ Dennis Baldwin (db@droneblocks.io) - DroneBlocks
 - [dexi_camera](https://github.com/DroneBlocks/dexi_camera) - Camera interface
 - [dexi_yolo](https://github.com/droneblocks/dexi_yolo) - YOLO object detection
 - [dexi_interfaces](https://github.com/DroneBlocks/dexi_interfaces) - Custom message definitions
+- [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) - WebSocket bridge for web interfaces
+- [micro_ros_agent](https://github.com/micro-ROS/micro_ros_agent) - Micro-ROS communication agent
+- [apriltag_ros](https://github.com/AprilRobotics/apriltag_ros) - AprilTag detection package
+- [camera_ros](https://github.com/christianrauch/camera_ros) - CSI camera interface for ROS2
