@@ -128,14 +128,6 @@ def generate_launch_description():
     )
     ld.add_action(throttle_node)
     
-    # Servo controller launch file
-    servo_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'servo_controller.launch.py')
-        ]),
-        condition=IfCondition(servos)
-    )
-    ld.add_action(servo_launch)
     
     # GPIO launch file
     gpio_launch = IncludeLaunchDescription(

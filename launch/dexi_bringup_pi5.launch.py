@@ -115,10 +115,10 @@ def generate_launch_description():
     )
     ld.add_action(throttle_node)
     
-    # Servo controller launch file
+    # PCA9685 servo controller launch file
     servo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'servo_controller.launch.py')
+            os.path.join(get_package_share_directory('ros2_pca9685'), 'launch', 'ros2_pca9685.launch.py')
         ]),
         condition=IfCondition(servos)
     )
