@@ -47,7 +47,7 @@ if [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
     ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED gpio:=$GPIO_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 elif [[ $HARDWARE_MODEL == *"Raspberry Pi 5"* ]]; then
     echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED servos:=$SERVO_ENABLED gpio:=$GPIO_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED servos:=$SERVO_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 else
     echo "Unknown hardware: $HARDWARE_MODEL - no launch file specified for this platform"
 fi
