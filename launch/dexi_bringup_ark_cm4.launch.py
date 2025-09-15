@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
@@ -13,14 +13,21 @@ def generate_launch_description():
     
     # Create the launch description
     ld = LaunchDescription()
-    
+
     # Declare the launch arguments
-    apriltags = LaunchConfiguration('apriltags', default='false')
-    servos = LaunchConfiguration('servos', default='false')
-    gpio = LaunchConfiguration('gpio', default='false')
-    rosbridge = LaunchConfiguration('rosbridge', default='true')
-    camera = LaunchConfiguration('camera', default='true')
-    yolo = LaunchConfiguration('yolo', default='false')
+    ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
+    ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
+    ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
+    ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
+    ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
+
+    apriltags = LaunchConfiguration('apriltags')
+    servos = LaunchConfiguration('servos')
+    gpio = LaunchConfiguration('gpio')
+    rosbridge = LaunchConfiguration('rosbridge')
+    camera = LaunchConfiguration('camera')
+    yolo = LaunchConfiguration('yolo')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
