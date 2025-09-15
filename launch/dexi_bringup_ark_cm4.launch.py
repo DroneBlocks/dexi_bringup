@@ -93,7 +93,6 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect', '/cam0/image_raw'),
             ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
