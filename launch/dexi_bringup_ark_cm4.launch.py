@@ -95,7 +95,8 @@ def generate_launch_description():
         remappings=[
             ('image_rect', '/cam0/image_raw'),
             ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
-            ('camera_info', '/cam0/camera_info')
+            ('camera_info', '/cam0/camera_info'),
+            ('detections', '/apriltag_detections')
         ],
         parameters=[{
             'image_transport': 'compressed',
@@ -117,16 +118,6 @@ def generate_launch_description():
         condition=IfCondition(camera)
     )
     ld.add_action(image_throttle_node)
-    
-    # Throttle node for detections
-    throttle_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='throttle_node',
-        arguments=['messages', '/detections', '1', '/throttled/detections'],
-        condition=IfCondition(apriltags)
-    )
-    ld.add_action(throttle_node)
     
     
     # GPIO launch file
