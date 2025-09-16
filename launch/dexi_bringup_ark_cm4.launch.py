@@ -108,13 +108,13 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('image_rect', '/cam0/image_raw/raw_2hz'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
-            'image_transport': 'compressed',
-            'image_topic': '/cam0/image_raw/compressed_2hz',
+            'image_transport': 'raw',
+            'image_topic': '/cam0/image_raw/raw_2hz',
             'camera_info_topic': '/cam0/camera_info',
             'tag_family': '36h11',  # Standard AprilTag family
             'tag_size': 0.1,  # Size of the tag in meters
@@ -123,15 +123,25 @@ def generate_launch_description():
     )
     ld.add_action(apriltag_node)
     
-    # Image throttle node for 2fps - reduces bandwidth for YOLO and AprilTag
-    image_throttle_node = Node(
+    # Image throttle node for 2fps raw images - for YOLO and AprilTag
+    image_throttle_raw_node = Node(
         package='topic_tools',
         executable='throttle',
-        name='image_throttle_node',
+        name='image_throttle_raw_node',
+        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_raw_node)
+
+    # Image throttle node for 2fps compressed images - for web GUI
+    image_throttle_compressed_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_compressed_node',
         arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
         condition=IfCondition(camera)
     )
-    ld.add_action(image_throttle_node)
+    ld.add_action(image_throttle_compressed_node)
     
     
     # GPIO launch file
@@ -149,7 +159,7 @@ def generate_launch_description():
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
         remappings=[
-            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz')
+            ('/cam0/image_raw', '/cam0/image_raw/raw_2hz')
         ],
         condition=IfCondition(yolo)
     )

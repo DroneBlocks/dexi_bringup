@@ -2,24 +2,24 @@
 # Copy this file to /home/dexi/.dexi-config.yaml to customize
 
 nodes:
-  yolo:
-    enabled: false
-    confidence_threshold: 0.5
+  apriltag:
+    enabled: true
+    max_tags: 10
   camera:
     enabled: true
-    width: 640
-    height: 480
+    width: 320
+    height: 240
     format: "XRGB8888"
-    jpeg_quality: 60
-  apriltag:
-    enabled: false
-    max_tags: 10
+    jpeg_quality: 75
   gpio:
-    enabled: true
-  servo:
     enabled: true
   rosbridge:
     enabled: true
+  servo:
+    enabled: true
+  yolo:
+    enabled: true
+    confidence_threshold: 0.5
 
 system:
   debug_mode: false
