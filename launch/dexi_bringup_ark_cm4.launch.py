@@ -20,6 +20,10 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
+    ld.add_action(DeclareLaunchArgument('camera_width', default_value='640', description='Camera width'))
+    ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
+    ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
+    ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
 
     apriltags = LaunchConfiguration('apriltags')
@@ -27,6 +31,10 @@ def generate_launch_description():
     gpio = LaunchConfiguration('gpio')
     rosbridge = LaunchConfiguration('rosbridge')
     camera = LaunchConfiguration('camera')
+    camera_width = LaunchConfiguration('camera_width')
+    camera_height = LaunchConfiguration('camera_height')
+    camera_format = LaunchConfiguration('camera_format')
+    camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
     yolo = LaunchConfiguration('yolo')
     
     # Create micro_ros_agent node
@@ -82,10 +90,10 @@ def generate_launch_description():
             ('camera_info', '/cam0/camera_info')
         ],
         parameters=[{
-            'format': 'XRGB8888',
-            'width': 320,
-            'height': 240, 
-            'jpeg_quality': 60,
+            'format': camera_format,
+            'width': camera_width,
+            'height': camera_height,
+            'jpeg_quality': camera_jpeg_quality,
             'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_2.1_csi.yaml'),  # Use calibration file from dexi_camera package
             'frame_id': 'camera',
             'camera_name': 'cam0'

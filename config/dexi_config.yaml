@@ -7,7 +7,10 @@ nodes:
     confidence_threshold: 0.5
   camera:
     enabled: true
-    type: "auto"  # auto, usb, csi
+    width: 640
+    height: 480
+    format: "XRGB8888"
+    jpeg_quality: 60
   apriltag:
     enabled: false
     max_tags: 10
