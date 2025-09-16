@@ -34,7 +34,7 @@ YOLO_ENABLED=$(get_config_value "yolo" "false")
 APRILTAG_ENABLED=$(get_config_value "apriltag" "false")
 CAMERA_ENABLED=$(get_config_value "camera" "true")
 SERVO_ENABLED=$(get_config_value "servo" "true")
-GPIO_ENABLED=$(get_config_value "led" "true")
+GPIO_ENABLED=$(get_config_value "gpio" "false")
 ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "true")
 
 # Detect hardware type from device tree model

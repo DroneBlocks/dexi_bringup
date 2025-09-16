@@ -11,9 +11,8 @@ nodes:
   apriltag:
     enabled: false
     max_tags: 10
-  led:
+  gpio:
     enabled: true
-    brightness: 0.8
   servo:
     enabled: true
   rosbridge:
