@@ -93,8 +93,6 @@ def generate_launch_description():
         ],
         parameters=[{
             'image_transport': 'compressed',
-            'image_topic': '/cam0/image_raw/compressed_2hz',
-            'camera_info_topic': '/cam0/camera_info',
             'tag_family': '36h11',  # Standard AprilTag family
             'tag_size': 0.1,  # Size of the tag in meters
         }],
