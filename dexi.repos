@@ -1,5 +1,10 @@
 repositories:
 
+  dexi_tools:
+    type: git
+    url: https://github.com/DroneBlocks/dexi_tools
+    version: main
+
   dexi_cpp:
     type: git
     url: https://github.com/DroneBlocks/dexi_cpp
