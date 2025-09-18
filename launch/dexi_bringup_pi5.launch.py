@@ -99,8 +99,18 @@ def generate_launch_description():
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # Image throttle node for 2fps raw images - for YOLO detection
+    image_throttle_raw_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_raw_node',
+        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_raw_node)
     
-    # Image throttle node for 2fps - reduces bandwidth for YOLO and AprilTag
+    # Image throttle node for 2fps compressed images - for AprilTag detection
     image_throttle_node = Node(
         package='topic_tools',
         executable='throttle',
@@ -134,7 +144,7 @@ def generate_launch_description():
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
         remappings=[
-            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz')
+            ('/cam0/image_raw', '/cam0/image_raw/raw_2hz')
         ],
         condition=IfCondition(yolo)
     )
