@@ -121,7 +121,7 @@ def generate_launch_description():
     )
     ld.add_action(apriltag_node)
     
-    # Image throttle node for 2fps raw images - for YOLO and AprilTag
+    # Image throttle node for 2fps raw images - for YOLO detection
     image_throttle_raw_node = Node(
         package='topic_tools',
         executable='throttle',
@@ -131,7 +131,7 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_raw_node)
 
-    # Image throttle node for 2fps compressed images - for web GUI
+    # Image throttle node for 2fps compressed images - for AprilTag detection
     image_throttle_compressed_node = Node(
         package='topic_tools',
         executable='throttle',
