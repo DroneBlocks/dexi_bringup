@@ -1,0 +1,38 @@
+# Don't have the firmware create an initial video= setting in cmdline.txt.
+# Use the kernel's default instead.
+disable_fw_kms_setup=1
+
+# Run in 64-bit mode
+arm_64bit=1
+
+# Disable compensation for displays with overscan
+disable_overscan=1
+
+# Run as fast as firmware / board allows
+arm_boost=1
+
+[cm5]
+dtoverlay=dwc2,dr_mode=host
+
+[all]
+# Enable uart0 on Pi5 (GPIO 14/15 - Pins 8/10)
+# mavlink-router /dev/ttyAMA0
+enable_uart=1
+dtoverlay=disable-bt
+dtoverlay=uart0-pi5
+
+# Enable uart3 on Pi5 (GPIO 8/9 - Pins 24/21)
+# micro_ros_agent /dev/ttyAMA3
+dtoverlay=uart3-pi5
+
+# SPI1 on GPIO 20 for LED control
+dtoverlay=spi1-1cs
+
+# Enable i2c-1 (GPIO 2/3 - Pins 3/5 - /dev/i2c-1)
+dtparam=i2c_arm=on
+
+# Enable i2c-2 (GPIO 4/5 - Pins 7/29 - /dev/i2c-2)
+dtoverlay=i2c2,pins_4_5
+
+dtoverlay=imx219,cam0
+dtoverlay=imx219,cam1
