@@ -18,6 +18,8 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
+    ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
+    ld.add_action(DeclareLaunchArgument('keyboard_control', default_value='false', description='Enable keyboard teleop control'))
     ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
@@ -25,6 +27,8 @@ def generate_launch_description():
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
     gpio = LaunchConfiguration('gpio')
+    offboard = LaunchConfiguration('offboard')
+    keyboard_control = LaunchConfiguration('keyboard_control')
     rosbridge = LaunchConfiguration('rosbridge')
     camera = LaunchConfiguration('camera')
     yolo = LaunchConfiguration('yolo')
@@ -149,5 +153,30 @@ def generate_launch_description():
         condition=IfCondition(yolo)
     )
     ld.add_action(yolo_node)
-    
+
+    # Include offboard control nodes
+    offboard_manager_node = Node(
+        package='dexi_offboard',
+        executable='px4_offboard_manager',
+        name='px4_offboard_manager',
+        namespace='dexi',
+        output='screen',
+        parameters=[{
+            'keyboard_control_enabled': keyboard_control
+        }],
+        condition=IfCondition(offboard)
+    )
+    ld.add_action(offboard_manager_node)
+
+    keyboard_teleop_node = Node(
+        package='dexi_offboard',
+        executable='keyboard_teleop',
+        name='keyboard_teleop',
+        namespace='dexi',
+        output='screen',
+        prefix='xterm -e',
+        condition=IfCondition(keyboard_control)
+    )
+    ld.add_action(keyboard_teleop_node)
+
     return ld 
