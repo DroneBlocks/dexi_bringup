@@ -154,6 +154,15 @@ def generate_launch_description():
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
+
+    # DEXI servo controller launch file
+    servo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'servo_controller.launch.py')
+        ]),
+        condition=IfCondition(servos)
+    )
+    ld.add_action(servo_launch)
     
     # YOLO node
     yolo_node = Node(
