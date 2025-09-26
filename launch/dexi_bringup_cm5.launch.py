@@ -76,10 +76,10 @@ def generate_launch_description():
     )
     ld.add_action(rosapi)
     
-    # Include CM4 LED service launch file
+    # Include CM5 LED service launch file
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_cm4.launch.py')
+            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
         ])
     )
     ld.add_action(led_launch)
