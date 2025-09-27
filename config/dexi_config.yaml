@@ -13,6 +13,9 @@ nodes:
     jpeg_quality: 75
   gpio:
     enabled: true
+  offboard:
+    enabled: false
+    keyboard_control: false
   rosbridge:
     enabled: true
   servo:
