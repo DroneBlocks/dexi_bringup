@@ -46,7 +46,7 @@ def generate_launch_description():
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent',
-        arguments=['serial', '--dev', '/dev/ttyAMA4', '-b', '921600']
+        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '921600']
     )
     ld.add_action(micro_ros_agent)
     
@@ -149,7 +149,7 @@ def generate_launch_description():
     # GPIO launch file
     gpio_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_gpio'), 'launch', 'gpio.launch.py')
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'gpio.launch.py')
         ]),
         condition=IfCondition(gpio)
     )
