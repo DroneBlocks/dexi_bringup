@@ -40,7 +40,7 @@ CAMERA_HEIGHT=$(get_config_value "camera" "height" "480")
 CAMERA_FORMAT=$(get_config_value "camera" "format" "XRGB8888")
 CAMERA_JPEG_QUALITY=$(get_config_value "camera" "jpeg_quality" "60")
 SERVO_ENABLED=$(get_config_value "servo" "enabled" "true")
-GPIO_ENABLED=$(get_config_value "gpio" "enabled" "false")
+GPIO_ENABLED=$(get_config_value "gpio" "enabled" "true")
 OFFBOARD_ENABLED=$(get_config_value "offboard" "enabled" "false")
 KEYBOARD_CONTROL_ENABLED=$(get_config_value "offboard" "keyboard_control" "false")
 ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "enabled" "true")
@@ -52,10 +52,10 @@ echo "Configuration loaded: yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, cam
 
 if [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
     echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
-    ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+    ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 elif [[ $HARDWARE_MODEL == *"Raspberry Pi 5"* ]]; then
     echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+    ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 else
     echo "Unknown hardware: $HARDWARE_MODEL - no launch file specified for this platform"
 fi

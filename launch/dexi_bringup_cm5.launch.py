@@ -149,7 +149,7 @@ def generate_launch_description():
     # GPIO launch file
     gpio_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'gpio.launch.py')
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'tca9555_controller.launch.py')
         ]),
         condition=IfCondition(gpio)
     )
