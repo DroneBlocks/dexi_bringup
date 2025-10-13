@@ -22,7 +22,7 @@ nodes:
     enabled: true
   yolo:
     enabled: true
-    confidence_threshold: 0.5
+    confidence_threshold: 0.65
 
 system:
   debug_mode: false
