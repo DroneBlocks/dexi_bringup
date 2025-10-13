@@ -34,5 +34,10 @@ dtparam=i2c_arm=on
 # Enable i2c-2 (GPIO 4/5 - Pins 7/29 - /dev/i2c-2)
 dtoverlay=i2c2,pins_4_5
 
+# Pi cam 3
+#dtoverlay=imx708,cam0
+#dtoverlay=imx708,cam1
+
+# Pi cam 2.1
 dtoverlay=imx219,cam0
 dtoverlay=imx219,cam1
