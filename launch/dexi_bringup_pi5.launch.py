@@ -3,7 +3,7 @@ from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -15,6 +15,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # Declare the launch arguments
+    ld.add_action(DeclareLaunchArgument('sitl', default_value='false', description='Enable SITL mode (UDP connection)'))
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
@@ -24,6 +25,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
 
+    sitl = LaunchConfiguration('sitl')
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
     gpio = LaunchConfiguration('gpio')
@@ -33,14 +35,25 @@ def generate_launch_description():
     camera = LaunchConfiguration('camera')
     yolo = LaunchConfiguration('yolo')
     
-    # Create micro_ros_agent node
-    micro_ros_agent = Node(
+    # Create micro_ros_agent node for hardware (serial connection)
+    micro_ros_agent_serial = Node(
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent',
-        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '921600']
+        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '921600'],
+        condition=UnlessCondition(sitl)
     )
-    ld.add_action(micro_ros_agent)
+    ld.add_action(micro_ros_agent_serial)
+
+    # Create micro_ros_agent node for SITL (UDP connection)
+    micro_ros_agent_udp = Node(
+        package='micro_ros_agent',
+        executable='micro_ros_agent',
+        name='micro_ros_agent',
+        arguments=['udp4', '--port', '8888'],
+        condition=IfCondition(sitl)
+    )
+    ld.add_action(micro_ros_agent_udp)
     
     # Create rosbridge websocket node
     rosbridge_websocket = Node(
