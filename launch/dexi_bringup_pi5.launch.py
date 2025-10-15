@@ -148,8 +148,18 @@ def generate_launch_description():
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
         remappings=[
-            ('/cam0/image_raw', '/cam0/image_raw/raw_2hz')
+            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz')
         ],
+        parameters=[{
+            'input_size': 320,           # Reduced from 640 for better performance
+            'num_threads': 1,            # Single thread to avoid CPU contention
+            'detection_frequency': 1.0,  # Process 1 frame per second
+            'use_letterbox': False,      # Disable for faster preprocessing
+            'confidence_threshold': 0.65, # Raised from 0.5 to reduce false positives
+            'nms_threshold': 0.4,
+            'verbose_logging': False,    # Disable verbose logging to save CPU
+            'max_detections': 10,        # Limit max detections to reduce processing
+        }],
         condition=IfCondition(yolo)
     )
     ld.add_action(yolo_node)
