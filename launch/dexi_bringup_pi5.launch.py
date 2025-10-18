@@ -15,6 +15,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # Declare the launch arguments
+    ld.add_action(DeclareLaunchArgument('namespace', default_value='dexi', description='Namespace for drone nodes (e.g., dexi, dexi1, dexi2)'))
     ld.add_action(DeclareLaunchArgument('sitl', default_value='false', description='Enable SITL mode (UDP connection)'))
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
@@ -25,6 +26,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
 
+    namespace = LaunchConfiguration('namespace')
     sitl = LaunchConfiguration('sitl')
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
@@ -85,7 +87,8 @@ def generate_launch_description():
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
-        ])
+        ]),
+        launch_arguments={'namespace': namespace}.items()
     )
     ld.add_action(led_launch)
     
@@ -182,7 +185,7 @@ def generate_launch_description():
         package='dexi_offboard',
         executable='px4_offboard_manager',
         name='px4_offboard_manager',
-        namespace='dexi',
+        namespace=namespace,
         output='screen',
         parameters=[{
             'keyboard_control_enabled': keyboard_control
@@ -195,7 +198,7 @@ def generate_launch_description():
         package='dexi_offboard',
         executable='keyboard_teleop',
         name='keyboard_teleop',
-        namespace='dexi',
+        namespace=namespace,
         output='screen',
         prefix='xterm -e',
         condition=IfCondition(keyboard_control)
