@@ -2,6 +2,8 @@
 # Copy this file to /home/dexi/.dexi-config.yaml to customize
 
 nodes:
+  sitl:
+    enabled: false
   apriltag:
     enabled: true
     max_tags: 10
