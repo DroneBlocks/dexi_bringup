@@ -47,13 +47,16 @@ KEYBOARD_CONTROL_ENABLED=$(get_config_value "offboard" "keyboard_control" "false
 ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "enabled" "true")
 
 # Detect hardware type from device tree model
-HARDWARE_MODEL=$(cat /proc/device-tree/model 2>/dev/null || echo "unknown")
+HARDWARE_MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "unknown")
 
 echo "Configuration loaded: sitl=$SITL_ENABLED, yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, camera=$CAMERA_ENABLED (${CAMERA_WIDTH}x${CAMERA_HEIGHT}, $CAMERA_FORMAT, q$CAMERA_JPEG_QUALITY), servos=$SERVO_ENABLED, gpio=$GPIO_ENABLED, offboard=$OFFBOARD_ENABLED, keyboard_control=$KEYBOARD_CONTROL_ENABLED, rosbridge=$ROSBRIDGE_ENABLED"
 
 if [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
     echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
     ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py sitl:=$SITL_ENABLED yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+elif [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 5"* ]]; then
+    echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
+    ros2 launch dexi_bringup dexi_bringup_cm5.launch.py sitl:=$SITL_ENABLED yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
 elif [[ $HARDWARE_MODEL == *"Raspberry Pi 5"* ]]; then
     echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
     ros2 launch dexi_bringup dexi_bringup_pi5.launch.py sitl:=$SITL_ENABLED yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
