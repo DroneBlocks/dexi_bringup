@@ -209,7 +209,6 @@ def generate_launch_description():
         name='keyboard_teleop',
         namespace='dexi',
         output='screen',
-        prefix='xterm -e',
         condition=IfCondition(keyboard_control)
     )
     ld.add_action(keyboard_teleop_node)
