@@ -113,7 +113,7 @@ def generate_launch_description():
         name='apriltag_node',
         remappings=[
             ('image_rect/compressed', '/cam0/image_raw/compressed_2hz_apriltag'),
-            ('camera_info', '/cam0/camera_info'),
+            ('camera_info', '/cam0/camera_info_2hz_apriltag'),
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
@@ -137,12 +137,12 @@ def generate_launch_description():
 
     # Separate throttle streams for YOLO and AprilTag to eliminate redundant throttling
 
-    # YOLO throttle: 1 FPS for object detection
+    # YOLO throttle: 2 FPS for object detection
     image_throttle_yolo_node = Node(
         package='topic_tools',
         executable='throttle',
         name='image_throttle_yolo_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '1.0', '/cam0/image_raw/compressed_1hz_yolo'],
+        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_yolo'],
         condition=IfCondition(camera)
     )
     ld.add_action(image_throttle_yolo_node)
@@ -156,6 +156,16 @@ def generate_launch_description():
         condition=IfCondition(camera)
     )
     ld.add_action(image_throttle_apriltag_node)
+
+    # AprilTag camera_info throttle: 2 FPS to match image rate
+    camera_info_throttle_apriltag_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='camera_info_throttle_apriltag_node',
+        arguments=['messages', '/cam0/camera_info', '2.0', '/cam0/camera_info_2hz_apriltag'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(camera_info_throttle_apriltag_node)
     
     
     # GPIO launch file
@@ -173,12 +183,12 @@ def generate_launch_description():
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
         remappings=[
-            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_1hz_yolo')
+            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz_yolo')
         ],
         parameters=[{
             'input_size': 320,           # Model trained at 320x320
             'num_threads': 1,            # Single thread to avoid CPU contention
-            'detection_frequency': 1.0,  # Process 1 frame per second (matches throttle rate)
+            'detection_frequency': 2.0,  # Process 2 frames per second (matches throttle rate)
             'use_letterbox': True,       # Enable to match training preprocessing (rect=False)
             'confidence_threshold': 0.5, # Lowered from 0.65 (sigmoid fix allows proper filtering)
             'nms_threshold': 0.4,
