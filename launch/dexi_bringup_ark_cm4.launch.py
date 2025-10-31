@@ -157,7 +157,7 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_apriltag_node)
 
-    # AprilTag camera_info throttle: 2 FPS to match image rate
+    # Throttle camera_info to match AprilTag image rate and eliminate sync warnings
     camera_info_throttle_apriltag_node = Node(
         package='topic_tools',
         executable='throttle',
