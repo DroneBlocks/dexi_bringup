@@ -10,7 +10,7 @@ nodes:
     width: 320
     height: 240
     format: "XRGB8888"
-    jpeg_quality: 75
+    jpeg_quality: 85
   gpio:
     enabled: true
   offboard:
