@@ -106,14 +106,14 @@ def generate_launch_description():
     )
     ld.add_action(camera_node)
     
-    # AprilTag node
+    # AprilTag node - uses full-rate camera streams (no throttling)
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz_apriltag'),
-            ('camera_info', '/cam0/camera_info_2hz_apriltag'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed'),
+            ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
@@ -135,8 +135,6 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_raw_node)
 
-    # Separate throttle streams for YOLO and AprilTag to eliminate redundant throttling
-
     # YOLO throttle: 2 FPS for object detection
     image_throttle_yolo_node = Node(
         package='topic_tools',
@@ -146,26 +144,6 @@ def generate_launch_description():
         condition=IfCondition(camera)
     )
     ld.add_action(image_throttle_yolo_node)
-
-    # AprilTag throttle: 2 FPS for tag detection
-    image_throttle_apriltag_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_apriltag_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_apriltag'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_apriltag_node)
-
-    # Throttle camera_info to match AprilTag image rate and eliminate sync warnings
-    camera_info_throttle_apriltag_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='camera_info_throttle_apriltag_node',
-        arguments=['messages', '/cam0/camera_info', '2.0', '/cam0/camera_info_2hz_apriltag'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(camera_info_throttle_apriltag_node)
     
     
     # GPIO launch file
