@@ -85,13 +85,13 @@ def generate_launch_description():
     )
     ld.add_action(camera_launch)
     
-    # AprilTag node
+    # AprilTag node - uses full-rate camera streams (no throttling)
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
@@ -114,8 +114,6 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_raw_node)
     
-    # Separate throttle streams for YOLO and AprilTag to eliminate redundant throttling
-
     # YOLO throttle: 2 FPS for object detection
     image_throttle_yolo_node = Node(
         package='topic_tools',
@@ -125,16 +123,6 @@ def generate_launch_description():
         condition=IfCondition(camera)
     )
     ld.add_action(image_throttle_yolo_node)
-
-    # AprilTag throttle: 2 FPS for tag detection
-    image_throttle_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_node)
     
     # DEXI servo controller launch file
     servo_launch = IncludeLaunchDescription(
