@@ -25,6 +25,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_offboard
     version: main
 
+  dexi_apriltag:
+    type: git
+    url: https://github.com/DroneBlocks/dexi_apriltag
+    version: main
+
   dexi_gpio:
     type: git
     url: https://github.com/DroneBlocks/dexi_gpio
