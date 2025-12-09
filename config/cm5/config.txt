@@ -35,9 +35,9 @@ dtparam=i2c_arm=on
 dtoverlay=i2c2,pins_4_5
 
 # Pi cam 3
-#dtoverlay=imx708,cam0
-#dtoverlay=imx708,cam1
+dtoverlay=imx708,cam0
+dtoverlay=imx708,cam1
 
 # Pi cam 2.1
-dtoverlay=imx219,cam0
-dtoverlay=imx219,cam1
+#dtoverlay=imx219,cam0
+#dtoverlay=imx219,cam1
