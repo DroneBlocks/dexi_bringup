@@ -1,14 +1,30 @@
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
 
 def generate_launch_description():
     """
     Launch file for Unity simulation with DEXI.
-    Starts rosbridge, LED visualization bridge, and PX4 offboard manager.
+    Starts rosbridge, LED visualization bridge, PX4 offboard manager,
+    and CTF challenge runner.
     Note: micro_ros_agent runs in a separate container via docker-compose.
+
+    Launch arguments:
+        challenge: The challenge ID to auto-start (default: 'arm_basic')
+                   Examples: 'arm_basic', 'takeoff_basic', or '' for no auto-start
     """
+    # Declare launch arguments
+    challenge_arg = DeclareLaunchArgument(
+        'challenge',
+        default_value='arm_basic',
+        description='Challenge ID to auto-start (e.g., arm_basic, takeoff_basic, or empty for none)'
+    )
+
     # Create the launch description
     ld = LaunchDescription()
+    ld.add_action(challenge_arg)
 
     # Note: micro_ros_agent runs in its own container via docker-compose
 
@@ -86,5 +102,17 @@ def generate_launch_description():
         output='screen'
     )
     ld.add_action(apriltag_node)
+
+    # CTF Challenge Runner
+    challenge_runner = Node(
+        package='dexi_ctf',
+        executable='challenge_runner.py',
+        name='challenge_runner',
+        parameters=[{
+            'auto_start_challenge': LaunchConfiguration('challenge'),
+        }],
+        output='screen'
+    )
+    ld.add_action(challenge_runner)
 
     return ld
