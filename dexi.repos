@@ -45,6 +45,11 @@ repositories:
     url: https://github.com/droneblocks/dexi_yolo
     version: main
 
+  dexi_ctf:
+    type: git
+    url: https://github.com/droneblocks/dexi_ctf
+    version: main
+
 
   apriltag:
     type: git
