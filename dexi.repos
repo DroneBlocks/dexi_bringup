@@ -59,7 +59,7 @@ repositories:
   apriltag_ros:
     type: git
     url: https://github.com/christianrauch/apriltag_ros
-    version: master
+    version: c81c05f
 
   apriltag_msgs:
     type: git
