@@ -84,7 +84,7 @@ def generate_launch_description():
     ld.add_action(px4_offboard_manager)
 
     # AprilTag node for Unity camera stream
-    # Unity publishes rgb8 images to /image_rect and /camera_info
+    # Unity publishes compressed images to /image_rect/compressed and /camera_info
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
@@ -95,7 +95,7 @@ def generate_launch_description():
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
-            'image_transport': 'raw',  # Unity publishes raw rgb8, not compressed
+            'image_transport': 'compressed',  # Unity publishes compressed images
             'tag_family': '36h11',
             'tag_size': 0.1,  # Size of the tag in meters
         }],
