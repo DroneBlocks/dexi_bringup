@@ -76,7 +76,7 @@ def generate_launch_description():
         name='px4_offboard_manager',
         namespace='dexi',
         parameters=[{
-            'keyboard_control_enabled': True
+            'keyboard_control_enabled': False  # Set True for keyboard control, False for position hold
         }],
         output='screen',
         emulate_tty=True
@@ -84,14 +84,14 @@ def generate_launch_description():
     ld.add_action(px4_offboard_manager)
 
     # AprilTag node for Unity camera stream
-    # Unity publishes compressed images to /image_rect/compressed and /camera_info
+    # Unity publishes compressed images to /cam0/image_raw/compressed and /cam0/camera_info
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect', '/image_rect'),
-            ('camera_info', '/camera_info'),
+            ('image_rect', '/cam0/image_raw'),
+            ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
