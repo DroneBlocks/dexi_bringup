@@ -76,7 +76,7 @@ def generate_launch_description():
         name='px4_offboard_manager',
         namespace='dexi',
         parameters=[{
-            'keyboard_control_enabled': False  # Set True for keyboard control, False for position hold
+            'keyboard_control_enabled': True  # Enabled for simulator keyboard/velocity control
         }],
         output='screen',
         emulate_tty=True
