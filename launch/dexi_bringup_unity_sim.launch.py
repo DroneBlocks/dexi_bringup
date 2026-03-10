@@ -96,8 +96,8 @@ def generate_launch_description():
         ],
         parameters=[{
             'image_transport': 'raw',  # Unity publishes raw rgb8, not compressed
-            'tag_family': '36h11',
-            'tag_size': 0.5,  # Size of the tag in meters (matches Unity Home Tag scale)
+            'family': '36h11',
+            'size': 0.5,  # Size of the tag in meters (matches Unity Home Tag scale)
         }],
         output='screen'
     )
