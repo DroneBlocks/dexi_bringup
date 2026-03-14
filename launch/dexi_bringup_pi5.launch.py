@@ -97,8 +97,8 @@ def generate_launch_description():
         ],
         parameters=[{
             'image_transport': 'compressed',
-            'tag_family': '36h11',  # Standard AprilTag family
-            'tag_size': 0.1,  # Size of the tag in meters
+            'family': '36h11',  # Standard AprilTag family
+            'size': 0.1,  # Size of the tag in meters
         }],
         condition=IfCondition(apriltags)
     )
