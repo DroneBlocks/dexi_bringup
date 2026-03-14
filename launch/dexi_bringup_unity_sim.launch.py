@@ -95,7 +95,7 @@ def generate_launch_description():
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
-            'image_transport': 'raw',  # Unity publishes raw rgb8, not compressed
+            'image_transport': 'compressed',  # Unity publishes compressed images via rosbridge
             'family': '36h11',
             'size': 0.5,  # Size of the tag in meters (matches Unity Home Tag scale)
         }],
