@@ -40,6 +40,7 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
+            'default_call_service_timeout': 120,  # Flight commands (takeoff, land) need >5s default
         }],
         output='screen'
     )
