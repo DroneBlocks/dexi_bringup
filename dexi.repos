@@ -94,7 +94,7 @@ repositories:
   rosbridge:
     type: git
     url: https://github.com/RobotWebTools/rosbridge_suite
-    version: ros2
+    version: jazzy
 
   image_transport_plugins:
     type: git
