@@ -98,7 +98,7 @@ def generate_launch_description():
         parameters=[{
             'image_transport': 'compressed',  # Unity publishes compressed images via rosbridge
             'family': '36h11',
-            'size': 0.5,  # Size of the tag in meters (matches Unity Home Tag scale)
+            'size': 0.15,  # Size of the tag in meters (matches Unity Home Tag scale)
         }],
         output='screen'
     )
