@@ -55,6 +55,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_llm
     version: main
 
+  dexi_color_detection:
+    type: git
+    url: https://github.com/DroneBlocks/dexi_color_detection
+    version: main
+
 
   apriltag:
     type: git

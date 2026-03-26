@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
@@ -21,10 +22,16 @@ def generate_launch_description():
         default_value='arm_basic',
         description='Challenge ID to auto-start (e.g., arm_basic, takeoff_basic, or empty for none)'
     )
+    color_detection_arg = DeclareLaunchArgument(
+        'color_detection',
+        default_value='true',
+        description='Enable HSV color detection on camera feed'
+    )
 
     # Create the launch description
     ld = LaunchDescription()
     ld.add_action(challenge_arg)
+    ld.add_action(color_detection_arg)
 
     # Note: micro_ros_agent runs in its own container via docker-compose
 
@@ -115,5 +122,19 @@ def generate_launch_description():
         output='screen'
     )
     ld.add_action(challenge_runner)
+
+    # Color detection node (subscribes to Unity camera feed)
+    color_detection_node = Node(
+        package='dexi_color_detection',
+        executable='color_detection_node.py',
+        name='color_detection_node',
+        parameters=[{
+            'detection_frequency': 5.0,
+            'min_contour_area': 500,
+            'publish_annotated_image': True,
+        }],
+        condition=IfCondition(LaunchConfiguration('color_detection'))
+    )
+    ld.add_action(color_detection_node)
 
     return ld
