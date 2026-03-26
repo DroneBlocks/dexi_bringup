@@ -27,6 +27,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
+    ld.add_action(DeclareLaunchArgument('color_detection', default_value='true', description='Enable HSV color detection'))
 
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
@@ -40,6 +41,7 @@ def generate_launch_description():
     camera_format = LaunchConfiguration('camera_format')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
     yolo = LaunchConfiguration('yolo')
+    color_detection = LaunchConfiguration('color_detection')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
@@ -176,6 +178,20 @@ def generate_launch_description():
         condition=IfCondition(yolo)
     )
     ld.add_action(yolo_node)
+
+    # Color detection node
+    color_detection_node = Node(
+        package='dexi_color_detection',
+        executable='color_detection_node.py',
+        name='color_detection_node',
+        parameters=[{
+            'detection_frequency': 5.0,
+            'min_contour_area': 500,
+            'publish_annotated_image': True,
+        }],
+        condition=IfCondition(color_detection)
+    )
+    ld.add_action(color_detection_node)
 
     # Include offboard control nodes
     offboard_manager_node = Node(
