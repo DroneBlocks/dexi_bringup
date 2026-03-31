@@ -7,10 +7,10 @@ nodes:
     max_tags: 10
   camera:
     enabled: true
-    width: 320
-    height: 240
+    width: 640
+    height: 480
     format: "XRGB8888"
-    jpeg_quality: 85
+    jpeg_quality: 60
   gpio:
     enabled: true
   offboard:
