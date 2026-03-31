@@ -99,6 +99,7 @@ def generate_launch_description():
             'format': camera_format,
             'width': camera_width,
             'height': camera_height,
+            'sensor_mode': '1640:1232',
             'jpeg_quality': camera_jpeg_quality,
             'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_2.1_csi.yaml'),  # Use calibration file from dexi_camera package
             'frame_id': 'camera',
@@ -127,16 +128,6 @@ def generate_launch_description():
     )
     ld.add_action(apriltag_node)
     
-    # Image throttle node for 2fps raw images - unused, kept for compatibility
-    image_throttle_raw_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_raw_node',
-        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_raw_node)
-
     # YOLO throttle: 2 FPS for object detection
     image_throttle_yolo_node = Node(
         package='topic_tools',
