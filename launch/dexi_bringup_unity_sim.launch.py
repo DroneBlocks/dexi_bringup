@@ -48,12 +48,22 @@ def generate_launch_description():
             'keyfile': '',
             'authenticate': False,
             'default_call_service_timeout': 120.0,  # Flight commands (takeoff, land) need >5s default
-            'dexi_platform': 'unity_sim',
-            'dexi_keyboard_control': True,
         }],
         output='screen'
     )
     ld.add_action(rosbridge_websocket)
+
+    # Platform params node — exposes platform identity and feature flags for the web dashboard
+    platform_params = Node(
+        package='dexi_bringup',
+        executable='platform_params_node',
+        name='dexi_platform_params',
+        parameters=[{
+            'dexi_platform': 'unity_sim',
+            'dexi_keyboard_control': True,
+        }],
+    )
+    ld.add_action(platform_params)
 
     # Create rosapi node
     rosapi = Node(

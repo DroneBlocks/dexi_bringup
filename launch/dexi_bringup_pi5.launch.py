@@ -56,12 +56,23 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
+        }],
+        condition=IfCondition(rosbridge)
+    )
+    ld.add_action(rosbridge_websocket)
+
+    # Platform params node — exposes platform identity and feature flags for the web dashboard
+    platform_params = Node(
+        package='dexi_bringup',
+        executable='platform_params_node',
+        name='dexi_platform_params',
+        parameters=[{
             'dexi_platform': 'pi5',
             'dexi_keyboard_control': keyboard_control,
         }],
         condition=IfCondition(rosbridge)
     )
-    ld.add_action(rosbridge_websocket)
+    ld.add_action(platform_params)
     
     # Create rosapi node
     rosapi = Node(
