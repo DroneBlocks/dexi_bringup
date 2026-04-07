@@ -48,6 +48,8 @@ def generate_launch_description():
             'keyfile': '',
             'authenticate': False,
             'default_call_service_timeout': 120.0,  # Flight commands (takeoff, land) need >5s default
+            'dexi_platform': 'unity_sim',
+            'dexi_keyboard_control': True,
         }],
         output='screen'
     )

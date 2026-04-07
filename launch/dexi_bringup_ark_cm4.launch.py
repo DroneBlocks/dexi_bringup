@@ -64,6 +64,8 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
+            'dexi_platform': 'ark_cm4',
+            'dexi_keyboard_control': keyboard_control,
         }],
         condition=IfCondition(rosbridge)
     )
