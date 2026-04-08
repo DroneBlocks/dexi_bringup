@@ -1,23 +1,27 @@
 # DEXI Bringup
 
-A comprehensive ROS2 bringup package for the DEXI drone system, designed for Debian Bookworm and ROS2 Jazzy. This package provides launch files and configuration to bring up all core DEXI components including camera, AprilTag detection, servo control, GPIO management, and communication services.
+A comprehensive ROS2 bringup package for the DEXI drone system, designed for Debian Bookworm and ROS2 Jazzy. This package provides launch files and configuration to bring up all core DEXI components including camera, AprilTag detection, color detection, servo control, GPIO management, and communication services.
 
 ## Features
 
-- **Multi-platform Support**: Automatic detection of Raspberry Pi CM4 vs Pi5 hardware
-- **Modular Launch System**: Optional component activation (AprilTags, servos, GPIO)
-- **Camera Integration**: Support for both CSI (CM4) and UVC (Pi5) cameras
+- **Multi-platform Support**: Automatic detection of ARK CM4, CM5, and Pi5 hardware
+- **Modular Launch System**: Optional component activation via config file
+- **Camera Integration**: CSI camera (CM4/CM5) and UVC camera (Pi5)
 - **Communication**: ROS bridge, micro-ROS agent, and web interfaces
-- **Hardware Control**: Servo and GPIO control via PCA9685 I2C interface
-- **Computer Vision**: AprilTag detection and YOLO object detection support
+- **Computer Vision**: AprilTag detection, YOLO object detection, and HSV color detection
+- **Flight Control**: PX4 offboard manager with velocity and position control
 - **Systemd Service**: Automatic startup on boot
 
-## Architecture Support
+## Supported Platforms
 
-The system supports different Raspberry Pi architectures with specific launch files:
+| Platform | Launch File | Camera | Serial | Baud |
+|----------|-------------|--------|--------|------|
+| **ARK CM4** | `dexi_bringup_ark_cm4.launch.py` | CSI (camera_ros) | `/dev/ttyAMA4` | 3000000 |
+| **CM5** | `dexi_bringup_cm5.launch.py` | CSI (camera_ros) | `/dev/ttyAMA3` | 921600 |
+| **Pi5** | `dexi_bringup_pi5.launch.py` | UVC (dexi_camera) | `/dev/ttyAMA3` | 921600 |
+| **Unity Sim** | `dexi_bringup_unity_sim.launch.py` | N/A (Unity publishes) | N/A | N/A |
 
-- **Raspberry Pi CM4**: Uses CSI camera via camera_ros package
-- **Raspberry Pi 5**: Uses UVC camera via dexi_camera package
+Hardware is auto-detected by `start.bash` via `/proc/device-tree/model`. You do not need to specify which launch file to use.
 
 ## Quick Start
 
@@ -33,72 +37,43 @@ colcon build
 source install/setup.bash
 ```
 
-### 2. Basic Launch
+### 2. Launch
+
+The DEXI service handles launching automatically on boot. To launch manually:
 
 ```bash
-# Launch all components
-ros2 launch dexi_bringup dexi_bringup.launch.py apriltags:=true servos:=true gpio:=true
+# Auto-detect hardware and launch (recommended)
+sudo bash -c 'source /home/dexi/ros2_jazzy/install/setup.bash && source /home/dexi/dexi_ws/install/setup.bash && /home/dexi/dexi_ws/src/dexi_bringup/scripts/start.bash'
+
+# Or launch a specific platform directly
+ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py apriltags:=true offboard:=true
 ```
 
-### 3. Camera Setup (Docker)
+### Camera Topics
 
-The camera system runs in Docker for isolation and dependency management:
-
-```bash
-# Basic camera
-docker run -d --restart unless-stopped --privileged --net=host \
-  -v /dev:/dev/ -v /run/udev/:/run/udev/ --group-add video \
-  droneblocks/dexi-pi-camera-ros ros2 run camera_ros camera_node \
-  --ros-args -r __node:=cam0
-
-# With calibration file
-docker run -d --restart unless-stopped --privileged --net=host \
-  -v /dev:/dev/ -v /run/udev/:/run/udev/ \
-  -v /home/dexi/main_camera_2.1.yaml:/app/main_camera_2.1.yaml \
-  --group-add video droneblocks/dexi-pi-camera-ros \
-  ros2 run camera_ros camera_node --ros-args -r __node:=cam0 \
-  -p camera_info_url:=file:///app/main_camera_2.1.yaml
-```
-
-Camera topics:
 - `/cam0/image_raw` - Raw image feed
-- `/cam0/image_raw/compressed` - Compressed image feed
+- `/cam0/image_raw/compressed` - Compressed image feed (used by web dashboard)
 - `/cam0/camera_info` - Camera calibration info
 
-## Launch Options
+## Launch Arguments
 
-### Core Launch Arguments
+All hardware launch files accept the same arguments. Defaults come from `~/.dexi-config.yaml`.
 
 | Argument | Default | Description |
 |----------|---------|-------------|
 | `apriltags` | `false` | Enable AprilTag detection |
-| `servos` | `false` | Enable servo control |
-| `gpio` | `false` | Enable GPIO control |
-| `ros2` | `true` | Enable micro-ROS agent |
-| `camera` | `true` | Enable camera system |
-
-### Component Examples
-
-```bash
-# AprilTag detection only
-ros2 launch dexi_bringup dexi_bringup.launch.py apriltags:=true
-
-# Servo control only
-ros2 launch dexi_bringup dexi_bringup.launch.py servos:=true
-
-# Multiple components
-ros2 launch dexi_bringup dexi_bringup.launch.py apriltags:=true servos:=true gpio:=true
-```
-
-### Architecture-Specific Launch Files
-
-```bash
-# Raspberry Pi CM4 (CSI camera)
-ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py
-
-# Raspberry Pi 5 (UVC camera)
-ros2 launch dexi_bringup dexi_bringup_pi5.launch.py
-```
+| `camera` | `true` | Enable camera |
+| `camera_width` | `640` | Camera width |
+| `camera_height` | `480` | Camera height |
+| `camera_format` | `XRGB8888` | Camera pixel format |
+| `camera_jpeg_quality` | `60` | JPEG compression quality |
+| `color_detection` | `true` | Enable HSV color detection |
+| `offboard` | `false` | Enable PX4 offboard flight control |
+| `keyboard_control` | `false` | Enable keyboard teleop |
+| `rosbridge` | `true` | Enable ROS bridge WebSocket |
+| `yolo` | `false` | Enable YOLO object detection |
+| `servos` | `false` | Enable servo control (CM5/Pi5 only) |
+| `gpio` | `false` | Enable GPIO control (CM5/Pi5 only) |
 
 ## Runtime Configuration
 
@@ -115,17 +90,26 @@ The `nodes` section controls feature toggles:
 ```yaml
 nodes:
   apriltag:
-    enabled: false    # AprilTag detection (~59% CPU on CM4)
+    enabled: true
+    max_tags: 10
   camera:
     enabled: true
-  color_detection:
-    enabled: true     # HSV color detection (~24% CPU on CM4)
+    width: 640
+    height: 480
+    format: "XRGB8888"
+    jpeg_quality: 60
+  gpio:
+    enabled: true
   offboard:
     enabled: true
-  yolo:
-    enabled: false    # YOLO object detection (heavy, disabled by default)
+    keyboard_control: false
   rosbridge:
     enabled: true
+  servo:
+    enabled: true
+  yolo:
+    enabled: false
+    confidence_threshold: 0.65
 ```
 
 ### Applying Changes
@@ -145,73 +129,54 @@ journalctl -u dexi.service --no-pager -n 5
 The startup log will show the resolved config, e.g.:
 
 ```
-Configuration loaded: yolo=false, apriltags=false, camera=true ...
+Configuration loaded: yolo=false, apriltags=true, camera=true ...
 ```
 
 ## System Integration
 
 ### Systemd Service
 
-For automatic startup on boot:
+The DEXI service is installed automatically during provisioning. To manage it:
 
 ```bash
-# Install service
-sudo cp scripts/dexi.service /etc/systemd/system/
-sudo systemctl daemon-reload
-
-# Enable and start
-sudo systemctl enable dexi.service
-sudo systemctl start dexi.service
-
 # Monitor service
 sudo systemctl status dexi.service
 sudo journalctl -u dexi.service -f
+
+# Restart after config changes
+sudo systemctl restart dexi.service
 ```
 
 ### Configuration Files
 
 Hardware-specific configurations are stored in `config/`:
 
-- `config/cm4/config.txt` - Raspberry Pi CM4 boot configuration
-- `config/pi5/config.txt` - Raspberry Pi 5 boot configuration
+- `config/cm4/config.txt` - ARK CM4 boot configuration
+- `config/cm5/config.txt` - CM5 boot configuration
+- `config/pi5/config.txt` - Pi5 boot configuration
 - `config/mavlink-router/` - MAVLink routing configuration
+- `config/dexi_config.yaml` - Default runtime configuration template
 
 ## Dependencies
 
 ### Core ROS2 Packages
 - `dexi_led` - LED control service
-- `dexi_cpp` - C++ servo and GPIO nodes
-- `dexi_camera` - UVC camera interface (Pi5)
+- `dexi_offboard` - PX4 offboard flight control manager
+- `dexi_interfaces` - Custom message definitions
+- `dexi_camera` - Camera interface (Pi5)
+- `dexi_color_detection` - HSV color detection
+- `dexi_yolo` - YOLO object detection
 - `apriltag_ros` - AprilTag detection
+- `camera_ros` - CSI camera interface (CM4/CM5)
 - `rosbridge_server` - WebSocket bridge
 - `micro_ros_agent` - Micro-ROS communication
-
-### External Dependencies
-- Docker (for camera system)
-- I2C tools (for hardware control)
-- OpenCV (for computer vision)
-
-## Hardware Configuration
-
-### I2C Setup
-The system uses I2C for servo control via PCA9685. Ensure I2C is enabled:
-
-```bash
-# Enable I2C in raspi-config or add to /boot/config.txt
-dtparam=i2c_arm=on
-```
-
-### Serial Configuration
-Micro-ROS agent connects via UART:
-- Device: `/dev/ttyAMA3`
-- Baud rate: 921600
 
 ## Troubleshooting
 
 ### Camera Issues
-1. Check Docker container status: `docker ps`
-2. Verify camera permissions: `ls -la /dev/video*`
-3. Test camera: `v4l2-ctl --list-devices`
+1. Check camera is detected: `v4l2-ctl --list-devices`
+2. Verify camera node is running: check `journalctl -u dexi.service`
+3. Test compressed output: `ros2 topic hz /cam0/image_raw/compressed` (run as root)
 
 ### Service Issues
 ```bash
@@ -225,18 +190,17 @@ sudo journalctl -u dexi.service --no-pager
 sudo systemctl restart dexi.service
 ```
 
-### Package-Specific Dependencies
-Install dependencies for specific packages:
+### DDS Discovery
+ROS2 CLI tools (e.g., `ros2 topic list`) must be run as root to discover topics from the DEXI service:
 
 ```bash
-rosdep install --from-paths src/[package_name] --ignore-src -y
+sudo bash -c 'source /home/dexi/ros2_jazzy/install/setup.bash && source /home/dexi/dexi_ws/install/setup.bash && ros2 topic list'
 ```
 
 ## Network Services
 
-- **ROS Bridge**: WebSocket on port 9090 for web interfaces
-- **Web Video Server**: HTTP video streaming
-- **ROS API**: REST API for ROS topics and services
+- **ROS Bridge**: WebSocket on port 9090 for web dashboard
+- **ROS API**: Parameter and topic query service for web clients
 
 ## Development
 
@@ -249,7 +213,8 @@ source install/setup.bash
 ### Scripts
 Located in `scripts/`:
 - `dexi.service` - Systemd service configuration
-- `start.bash` - Service startup script
+- `start.bash` - Service startup script (reads config, detects hardware, launches)
+- `install.bash` - Installs the systemd service and default config
 
 ## License
 
@@ -261,9 +226,11 @@ Dennis Baldwin (db@droneblocks.io) - DroneBlocks
 
 ## Related Repositories
 
-- [dexi_cpp](https://github.com/DroneBlocks/dexi_cpp) - C++ hardware control nodes
+- [dexi_cpp](https://github.com/DroneBlocks/dexi_cpp) - C++ servo and GPIO nodes
 - [dexi_led](https://github.com/DroneBlocks/dexi_led) - LED control service
 - [dexi_camera](https://github.com/DroneBlocks/dexi_camera) - Camera interface
+- [dexi_offboard](https://github.com/DroneBlocks/dexi_offboard) - PX4 offboard flight control
+- [dexi_color_detection](https://github.com/DroneBlocks/dexi_color_detection) - HSV color detection
 - [dexi_yolo](https://github.com/droneblocks/dexi_yolo) - YOLO object detection
 - [dexi_interfaces](https://github.com/DroneBlocks/dexi_interfaces) - Custom message definitions
 - [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) - WebSocket bridge for web interfaces
