@@ -100,6 +100,68 @@ ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py
 ros2 launch dexi_bringup dexi_bringup_pi5.launch.py
 ```
 
+## Runtime Configuration
+
+DEXI uses a YAML config file to control which nodes launch at boot. The config file lives at `/home/dexi/.dexi-config.yaml` and is read by `start.bash` on each service restart.
+
+### Editing the Config
+
+```bash
+sudo nano /home/dexi/.dexi-config.yaml
+```
+
+The `nodes` section controls feature toggles:
+
+```yaml
+nodes:
+  apriltag:
+    enabled: false    # AprilTag detection (~59% CPU on CM4)
+  camera:
+    enabled: true
+  color_detection:
+    enabled: true     # HSV color detection (~24% CPU on CM4)
+  offboard:
+    enabled: true
+  yolo:
+    enabled: false    # YOLO object detection (heavy, disabled by default)
+  rosbridge:
+    enabled: true
+```
+
+### Applying Changes
+
+After editing the config, restart the DEXI service:
+
+```bash
+sudo systemctl restart dexi.service
+```
+
+Verify the new settings took effect:
+
+```bash
+journalctl -u dexi.service --no-pager -n 5
+```
+
+The startup log will show the resolved config, e.g.:
+
+```
+Configuration loaded: yolo=false, apriltags=false, camera=true ...
+```
+
+### CPU Impact (CM4 Benchmarks)
+
+These are approximate steady-state CPU percentages on a Raspberry Pi CM4 at 640x480:
+
+| Node | CPU % | Notes |
+|------|-------|-------|
+| apriltag_node | ~59% | Processes every camera frame. Disable if tags are not needed. |
+| color_detection | ~24% | Runs at 5 Hz. Disable if color tracking is not needed. |
+| camera_ros | ~23% | Always needed for camera feed. |
+| rosbridge | ~7% | Increases with more web clients connected. |
+| offboard_manager | ~6% | 20 Hz setpoint loop. Required for flight. |
+
+With all vision nodes enabled (apriltag + color + yolo), the CM4 is CPU-saturated. For typical operation, enable only the vision features you need.
+
 ## System Integration
 
 ### Systemd Service
