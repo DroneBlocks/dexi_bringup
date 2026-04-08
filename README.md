@@ -148,20 +148,6 @@ The startup log will show the resolved config, e.g.:
 Configuration loaded: yolo=false, apriltags=false, camera=true ...
 ```
 
-### CPU Impact (CM4 Benchmarks)
-
-These are approximate steady-state CPU percentages on a Raspberry Pi CM4 at 640x480:
-
-| Node | CPU % | Notes |
-|------|-------|-------|
-| apriltag_node | ~59% | Processes every camera frame. Disable if tags are not needed. |
-| color_detection | ~24% | Runs at 5 Hz. Disable if color tracking is not needed. |
-| camera_ros | ~23% | Always needed for camera feed. |
-| rosbridge | ~7% | Increases with more web clients connected. |
-| offboard_manager | ~6% | 20 Hz setpoint loop. Required for flight. |
-
-With all vision nodes enabled (apriltag + color + yolo), the CM4 is CPU-saturated. For typical operation, enable only the vision features you need.
-
 ## System Integration
 
 ### Systemd Service
