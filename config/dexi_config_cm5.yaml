@@ -1,0 +1,14 @@
+# CM5 platform defaults.
+#
+# CM5 DEXI drones use the Raspberry Pi CSI camera via camera_ros /
+# libcamera, which does ISP-level resize so any output size works.
+# Defaults match CM4 for parity; adjust here independently once CM5
+# benchmarking exists.
+#
+# This file is loaded by scripts/start.bash *on top of* the shared
+# dexi_config.yaml base. Only per-platform overrides belong here.
+
+nodes:
+  camera:
+    width: 640
+    height: 480

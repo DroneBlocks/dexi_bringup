@@ -22,6 +22,8 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('keyboard_control', default_value='false', description='Enable keyboard teleop control'))
     ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
+    ld.add_action(DeclareLaunchArgument('camera_width', default_value='1280', description='Camera capture width in pixels'))
+    ld.add_action(DeclareLaunchArgument('camera_height', default_value='720', description='Camera capture height in pixels'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='JPEG compression quality (0-100)'))
     ld.add_action(DeclareLaunchArgument('camera_timer_interval', default_value='0.033', description='Camera capture timer interval in seconds (1/fps)'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
@@ -34,6 +36,8 @@ def generate_launch_description():
     keyboard_control = LaunchConfiguration('keyboard_control')
     rosbridge = LaunchConfiguration('rosbridge')
     camera = LaunchConfiguration('camera')
+    camera_width = LaunchConfiguration('camera_width')
+    camera_height = LaunchConfiguration('camera_height')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
     camera_timer_interval = LaunchConfiguration('camera_timer_interval')
     yolo = LaunchConfiguration('yolo')
@@ -82,17 +86,19 @@ def generate_launch_description():
     )
     ld.add_action(led_launch)
     
-    # Camera launch file for Pi5 using dexi_camera (UVC camera)
-    # Note: camera_width / camera_height are intentionally not plumbed here.
-    # The Arducam 12MP UVC only natively supports 1280x720 and larger, and
-    # camera.launch.py's default is already 1280x720, so the runtime behaviour
-    # matches the hardware. Per-platform width/height handling lives in a
-    # follow-up PR that introduces a platform-aware config lookup.
+    # Camera launch file for Pi5 using dexi_camera (UVC camera).
+    # The Arducam 12MP UVC only supports 1280x720 and larger as native
+    # MJPG modes, so the Pi 5 platform config default is 1280x720 — see
+    # config/dexi_config_pi5.yaml. Setting smaller output sizes in
+    # ~/.dexi-config.yaml would require downscaling support in
+    # dexi_camera, which is not yet implemented.
     camera_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
         ]),
         launch_arguments={
+            'camera_width': camera_width,
+            'camera_height': camera_height,
             'jpeg_quality': camera_jpeg_quality,
             'timer_interval': camera_timer_interval,
         }.items(),

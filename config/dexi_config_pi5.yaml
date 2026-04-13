@@ -1,0 +1,15 @@
+# Pi 5 platform defaults.
+#
+# Pi 5 DEXI drones use the Arducam 12MP UVC (USB) camera via the
+# dexi_camera package. The Arducam only advertises MJPG native modes at
+# 1280x720 and larger, so the default capture size here matches that
+# constraint. Smaller output sizes require a separate downscale step
+# that is not currently implemented in dexi_camera.
+#
+# This file is loaded by scripts/start.bash *on top of* the shared
+# dexi_config.yaml base. Only per-platform overrides belong here.
+
+nodes:
+  camera:
+    width: 1280
+    height: 720
