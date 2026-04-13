@@ -1,0 +1,14 @@
+# CM4 platform defaults.
+#
+# CM4 DEXI drones use the Raspberry Pi CSI camera via camera_ros /
+# libcamera, which does ISP-level resize so any output size works.
+# Defaults chosen to match historical CM4 deployment (640x480 via the
+# 1640x1232 2x2-binned sensor mode, see dexi_bringup_ark_cm4.launch.py).
+#
+# This file is loaded by scripts/start.bash *on top of* the shared
+# dexi_config.yaml base. Only per-platform overrides belong here.
+
+nodes:
+  camera:
+    width: 640
+    height: 480

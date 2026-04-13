@@ -1,5 +1,18 @@
-# DEXI Default Configuration
-# Copy this file to /home/dexi/.dexi-config.yaml to customize
+# DEXI Shared Configuration (base)
+#
+# This file holds values that are identical across all DEXI hardware
+# platforms. Per-platform overrides (e.g. camera resolution on Pi 5 vs
+# CM4/CM5) live in dexi_config_<platform>.yaml next to this file.
+#
+# At runtime, scripts/start.bash detects the platform and looks up each
+# parameter in this order:
+#   1. ~/.dexi-config.yaml              (user override, optional)
+#   2. dexi_config_<platform>.yaml      (per-platform overlay)
+#   3. dexi_config.yaml                 (this file — shared base)
+#   4. hardcoded default in start.bash
+#
+# Copy this file (or the matching dexi_config_<platform>.yaml) to
+# /home/dexi/.dexi-config.yaml to customize.
 
 nodes:
   apriltag:
@@ -7,10 +20,10 @@ nodes:
     max_tags: 10
   camera:
     enabled: true
-    width: 640
-    height: 480
     format: "XRGB8888"
     jpeg_quality: 60
+    # width / height live in dexi_config_<platform>.yaml because they
+    # depend on the camera hardware attached to each platform.
   gpio:
     enabled: true
   offboard:
