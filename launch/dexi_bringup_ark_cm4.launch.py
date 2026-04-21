@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -149,11 +149,12 @@ def generate_launch_description():
     )
     ld.add_action(gpio_launch)
 
+    # CM4 shares GPIO pins between servo PWM and gpio reader/writer; gpio wins
     servo_pwm_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_gpio'), 'launch', 'servo_pwm.launch.py')
         ]),
-        condition=IfCondition(servos)
+        condition=IfCondition(PythonExpression(["'", servos, "' == 'true' and '", gpio, "' != 'true'"]))
     )
     ld.add_action(servo_pwm_launch)
 
