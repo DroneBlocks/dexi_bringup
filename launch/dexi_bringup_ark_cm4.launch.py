@@ -149,11 +149,6 @@ def generate_launch_description():
     )
     ld.add_action(gpio_launch)
 
-    # Servo PWM launch file - software-PWM backend from dexi_gpio.
-    # ARK CM4 has no PCA9685, so we use the RPi.GPIO-backed node instead
-    # of dexi_cpp/servo_controller that the Pi5/CM5 variants use. Same
-    # /dexi/servo_control service name and message type, so clients are
-    # unaware of the backend difference.
     servo_pwm_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_gpio'), 'launch', 'servo_pwm.launch.py')
