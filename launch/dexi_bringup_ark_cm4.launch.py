@@ -122,7 +122,10 @@ def generate_launch_description():
     )
     ld.add_action(camera_node)
     
-    # AprilTag node - uses full-rate camera streams (no throttling)
+    # AprilTag node - uses full-rate camera streams (no throttling).
+    # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
+    # without them the node detects tags in 2D but downstream consumers
+    # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
@@ -137,10 +140,27 @@ def generate_launch_description():
             'family': '36h11',
             'size': 0.1,
             'detector.decimate': 4.0,
+            'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            'tag.sizes': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            'tag.frames': [
+                'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
+                'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
+            ],
         }],
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
+    # Required for downstream nodes that look up tag TFs in body frame.
+    base_link_to_camera_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_camera_tf',
+        arguments=['0', '0', '0', '0', '1.5708', '0', 'base_link', 'camera'],
+        condition=IfCondition(apriltags)
+    )
+    ld.add_action(base_link_to_camera_tf)
     
     # YOLO throttle: 2 FPS for object detection
     image_throttle_yolo_node = Node(
