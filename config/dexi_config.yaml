@@ -24,8 +24,11 @@ nodes:
     jpeg_quality: 60
     # width / height live in dexi_config_<platform>.yaml because they
     # depend on the camera hardware attached to each platform.
-  gpio:
-    enabled: true
+  # gpio (TCA9555 expander) is platform-specific: present on some carriers,
+  # absent on others (e.g. CM5). It is intentionally omitted here so the
+  # value isn't frozen into the seeded ~/.dexi-config.yaml; set
+  # nodes.gpio.enabled in dexi_config_<platform>.yaml. start.bash defaults
+  # to true when unset, preserving behavior on carriers that have the chip.
   offboard:
     enabled: true
     keyboard_control: false
