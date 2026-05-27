@@ -136,6 +136,7 @@ def generate_launch_description():
             'image_transport': 'compressed',
             'family': '36h11',  # Standard AprilTag family
             'size': 0.1,  # Size of the tag in meters
+            'detector.decimate': 4.0,  # Decimate input image 4x to keep CPU in budget on Pi 5
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             'tag.sizes': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
             'tag.frames': [
