@@ -27,7 +27,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
-    ld.add_action(DeclareLaunchArgument('color_detection', default_value='true', description='Enable HSV color detection'))
+    ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
 
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
