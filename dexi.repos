@@ -64,7 +64,9 @@ repositories:
   apriltag:
     type: git
     url: https://github.com/AprilRobotics/apriltag
-    version: master
+    # Pinned (was 'master'): freeze AprilTag detection deps to the last known-good
+    # SHA so image rebuilds don't float on upstream master. See dexi_bringup PR.
+    version: 1c21707aa7304121a2529a71f8e512f6542f35d0
 
   apriltag_ros:
     type: git
@@ -74,7 +76,8 @@ repositories:
   apriltag_msgs:
     type: git
     url: https://github.com/christianrauch/apriltag_msgs
-    version: master
+    # Pinned (was 'master'): matches the apriltag pin above (known-good 2.0.1).
+    version: 84bd66c0120f340365437929d564ef390513387d
 
   async_web_server_cpp:
     type: git
