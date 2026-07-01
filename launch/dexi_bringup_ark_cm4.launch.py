@@ -122,7 +122,21 @@ def generate_launch_description():
     )
     ld.add_action(camera_node)
     
-    # AprilTag node - uses full-rate camera streams (no throttling).
+    # Image throttle node for 2fps compressed images - for AprilTag detection.
+    # AprilTag JPEG-decodes every frame it receives, so its CPU cost scales
+    # with frame rate, not detector.decimate. Feeding the full ~30fps stream
+    # pegged a CM4 core (~53%); throttling to 2Hz (matching the CM5 bringup)
+    # keeps detection responsive for precision landing while freeing the core.
+    image_throttle_compressed_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_compressed_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_compressed_node)
+
+    # AprilTag node - consumes the 2Hz throttled stream (see above).
     # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
     # without them the node detects tags in 2D but downstream consumers
     # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
@@ -131,7 +145,7 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
