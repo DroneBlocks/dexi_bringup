@@ -113,7 +113,7 @@ def generate_launch_description():
             'width': camera_width,
             'height': camera_height,
             'jpeg_quality': camera_jpeg_quality,
-            'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_2.1_csi.yaml'),  # Use calibration file from dexi_camera package
+            'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_3_arducam_640.yaml'),  # Use calibration file from dexi_camera package
             'frame_id': 'camera',
             'camera_name': 'cam0'
         }],
