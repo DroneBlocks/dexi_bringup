@@ -152,7 +152,7 @@ def generate_launch_description():
         parameters=[{
             'image_transport': 'compressed',
             'family': '36h11',
-            'size': 0.1,
+            'size': 0.1016,
             'detector.decimate': 4.0,
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             'tag.sizes': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
