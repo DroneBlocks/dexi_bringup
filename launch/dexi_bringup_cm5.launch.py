@@ -139,7 +139,7 @@ def generate_launch_description():
             'family': '36h11',  # Standard AprilTag family
             'size': 0.1016,  # Size of the tag in meters
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            'tag.sizes': [0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016],
             'tag.frames': [
                 'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
                 'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
