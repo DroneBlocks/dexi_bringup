@@ -1,11 +1,93 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
+import glob
 import os
+
+# Node, capture size and calibration must move together: a calibration
+# taken at a different resolution biases every AprilTag range.
+CAMERA_PROFILES = {
+    'usb': {
+        'width': 1280, 'height': 720,
+        'calibration': 'arducam_12mp_uvc.yaml',
+    },
+    'csi': {
+        'width': 640, 'height': 480,
+        'calibration': 'picam_2.1_csi.yaml',
+    },
+}
+
+
+def detect_camera():
+    """Return 'csi', 'usb' or None. CSI wins when both are fitted."""
+    # Match the i2c bus-address entry (e.g. 10-0010), not uevent/bind/module,
+    # which exist whenever the driver is loaded with no sensor attached.
+    if glob.glob('/sys/bus/i2c/drivers/imx*/*-00*'):
+        return 'csi'
+    if glob.glob('/dev/v4l/by-id/*Arducam*'):
+        return 'usb'
+    return None
+
+
+def usb_video_index():
+    """V4L2 index of the Arducam. The index moves depending on what else
+    is attached, so resolve it through the stable by-id path."""
+    for link in sorted(glob.glob('/dev/v4l/by-id/*Arducam*video-index0')):
+        return os.path.realpath(link).replace('/dev/video', '')
+    return '0'
+
+
+def select_camera(context, *args, **kwargs):
+    requested = LaunchConfiguration('camera_type').perform(context)
+    choice = detect_camera() if requested == 'auto' else requested
+
+    if choice is None:
+        return [LogInfo(msg='CAMERA: none detected - camera disabled')]
+
+    profile = CAMERA_PROFILES[choice]
+    calibration = 'file://' + os.path.join(
+        get_package_share_directory('dexi_camera'), 'config', profile['calibration'])
+    jpeg_quality = LaunchConfiguration('camera_jpeg_quality').perform(context)
+    announce = LogInfo(msg='CAMERA: %s %dx%d %s' % (
+        choice, profile['width'], profile['height'], profile['calibration']))
+
+    if choice == 'csi':
+        return [announce, Node(
+            package='camera_ros',
+            executable='camera_node',
+            name='cam0',
+            remappings=[('image_raw', '/cam0/image_raw'),
+                        ('camera_info', '/cam0/camera_info')],
+            parameters=[{
+                'format': LaunchConfiguration('camera_format').perform(context),
+                'width': profile['width'],
+                'height': profile['height'],
+                'jpeg_quality': int(jpeg_quality),
+                'camera_info_url': calibration,
+                'frame_id': 'camera',
+                'camera_name': 'cam0',
+            }],
+        )]
+
+    return [announce, IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
+        ]),
+        launch_arguments={
+            'camera_id': usb_video_index(),
+            'camera_name': 'cam0',
+            'camera_width': str(profile['width']),
+            'camera_height': str(profile['height']),
+            'camera_info_url': calibration,
+            'jpeg_quality': jpeg_quality,
+            'timer_interval': LaunchConfiguration('camera_timer_interval').perform(context),
+        }.items(),
+    )]
+
 
 def generate_launch_description():
     # Get the package directory
@@ -22,6 +104,8 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('keyboard_control', default_value='false', description='Enable keyboard teleop control'))
     ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
     ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
+    ld.add_action(DeclareLaunchArgument('camera_type', default_value='auto', description='Camera selection: auto, usb or csi'))
+    ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='libcamera pixel format (CSI only)'))
     ld.add_action(DeclareLaunchArgument('camera_width', default_value='1280', description='Camera capture width in pixels'))
     ld.add_action(DeclareLaunchArgument('camera_height', default_value='720', description='Camera capture height in pixels'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='JPEG compression quality (0-100)'))
@@ -36,6 +120,8 @@ def generate_launch_description():
     keyboard_control = LaunchConfiguration('keyboard_control')
     rosbridge = LaunchConfiguration('rosbridge')
     camera = LaunchConfiguration('camera')
+    camera_and_yolo = IfCondition(PythonExpression(
+        ["'", LaunchConfiguration('camera'), "' == 'true' and '", LaunchConfiguration('yolo'), "' == 'true'"]))
     camera_width = LaunchConfiguration('camera_width')
     camera_height = LaunchConfiguration('camera_height')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
@@ -99,41 +185,24 @@ def generate_launch_description():
     )
     ld.add_action(led_launch)
     
-    # Camera launch file for Pi5 using dexi_camera (UVC camera).
-    # The Arducam 12MP UVC only supports 1280x720 and larger as native
-    # MJPG modes, so the Pi 5 platform config default is 1280x720 — see
-    # config/dexi_config_pi5.yaml. Setting smaller output sizes in
-    # ~/.dexi-config.yaml would require downscaling support in
-    # dexi_camera, which is not yet implemented.
-    camera_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_camera'), 'camera.launch.py')
-        ]),
-        launch_arguments={
-            'camera_width': camera_width,
-            'camera_height': camera_height,
-            'jpeg_quality': camera_jpeg_quality,
-            'timer_interval': camera_timer_interval,
-        }.items(),
-        condition=IfCondition(camera)
-    )
-    ld.add_action(camera_launch)
+    # Camera. Resolution and calibration come from the detected profile,
+    # so camera_width/camera_height are not forwarded here.
+    ld.add_action(GroupAction([OpaqueFunction(function=select_camera)],
+                              condition=IfCondition(camera)))
     
-    # Image throttle node for 2fps compressed images - for AprilTag detection.
-    # AprilTag JPEG-decodes every frame it receives, so its CPU cost scales
-    # with frame rate, not detector.decimate. Feeding the full ~30fps stream
-    # pegs a core; throttling to 2Hz (matching the CM5 bringup) keeps
-    # detection responsive for precision landing while freeing the core.
-    image_throttle_compressed_node = Node(
+    # AprilTag rate limit. apriltag_node JPEG-decodes every frame it
+    # receives, so cost scales with this rate, not detector.decimate.
+    # 10 Hz matches DEXI-5 v1; measured ~29% of a core on Pi 5.
+    image_throttle_apriltag_node = Node(
         package='topic_tools',
         executable='throttle',
-        name='image_throttle_compressed_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
+        name='image_throttle_apriltag_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '10.0', '/cam0/image_raw/compressed_apriltag'],
         condition=IfCondition(camera)
     )
-    ld.add_action(image_throttle_compressed_node)
+    ld.add_action(image_throttle_apriltag_node)
 
-    # AprilTag node - consumes the 2Hz throttled stream (see above).
+    # AprilTag node - consumes the 10Hz throttled stream (see above).
     # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
     # without them the node detects tags in 2D but downstream consumers
     # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
@@ -142,17 +211,17 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed_apriltag'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
         parameters=[{
             'image_transport': 'compressed',
             'family': '36h11',  # Standard AprilTag family
-            'size': 0.1016,  # Size of the tag in meters
+            'size': 0.1524,  # 6 in black square
             'detector.decimate': 4.0,  # Decimate input image 4x to keep CPU in budget on Pi 5
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016],
+            'tag.sizes': [0.1524] * 10,
             'tag.frames': [
                 'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
                 'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
@@ -179,7 +248,7 @@ def generate_launch_description():
         executable='throttle',
         name='image_throttle_raw_node',
         arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
-        condition=IfCondition(camera)
+        condition=camera_and_yolo
     )
     ld.add_action(image_throttle_raw_node)
     
@@ -189,7 +258,7 @@ def generate_launch_description():
         executable='throttle',
         name='image_throttle_yolo_node',
         arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_yolo'],
-        condition=IfCondition(camera)
+        condition=camera_and_yolo
     )
     ld.add_action(image_throttle_yolo_node)
     

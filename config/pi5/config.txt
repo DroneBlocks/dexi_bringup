@@ -33,3 +33,11 @@ dtparam=i2c_arm=on
 
 # Enable i2c-2 (GPIO 4/5 - Pins 7/29 - /dev/i2c-2)
 dtoverlay=i2c2,pins_4_5
+
+# Camera. Probes the sensor EEPROM and loads the matching overlay, so one
+# image serves airframes fitted with a CSI sensor and airframes carrying
+# only the Arducam 12MP over USB. Without this the Pi 5 image loads no
+# camera overlay at all and libcamera enumerates nothing, which is why a
+# CSI camera on this platform has needed a hand-edited dtoverlay line in
+# /boot/firmware/config.txt to work.
+camera_auto_detect=1
