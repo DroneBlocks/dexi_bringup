@@ -4,12 +4,14 @@ from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, Opaq
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 import glob
 import os
 
 # Node, capture size and calibration must move together: a calibration
 # taken at a different resolution biases every AprilTag range.
+CAMERA_PROFILE_PACKAGES = {'usb': 'dexi_camera', 'csi': 'camera_ros'}
+
 CAMERA_PROFILES = {
     'usb': {
         'width': 1280, 'height': 720,
@@ -41,6 +43,14 @@ def usb_video_index():
     return '0'
 
 
+def package_available(name):
+    try:
+        get_package_share_directory(name)
+        return True
+    except (PackageNotFoundError, KeyError):
+        return False
+
+
 def select_camera(context, *args, **kwargs):
     requested = LaunchConfiguration('camera_type').perform(context)
     choice = detect_camera() if requested == 'auto' else requested
@@ -48,6 +58,24 @@ def select_camera(context, *args, **kwargs):
     if choice is None:
         return [LogInfo(msg='CAMERA: none detected - camera disabled')]
 
+    # Never let a missing camera package take the rest of the stack down
+    # with it: fall back if the other path is usable, otherwise run without
+    # a camera. camera_ros in particular is in dexi.repos but is not always
+    # built into the image.
+    if not package_available(CAMERA_PROFILE_PACKAGES[choice]):
+        missing = CAMERA_PROFILE_PACKAGES[choice]
+        fallback = 'usb' if choice == 'csi' else 'csi'
+        if package_available(CAMERA_PROFILE_PACKAGES[fallback]):
+            return [LogInfo(msg='CAMERA: %s selected but package %s is not built - '
+                                'falling back to %s' % (choice, missing, fallback))
+                    ] + select_profile(context, fallback)
+        return [LogInfo(msg='CAMERA: package %s not built and no fallback - '
+                            'camera disabled' % missing)]
+
+    return select_profile(context, choice)
+
+
+def select_profile(context, choice):
     profile = CAMERA_PROFILES[choice]
     calibration = 'file://' + os.path.join(
         get_package_share_directory('dexi_camera'), 'config', profile['calibration'])
