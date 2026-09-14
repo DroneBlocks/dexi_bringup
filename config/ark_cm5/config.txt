@@ -1,0 +1,56 @@
+# Don't have the firmware create an initial video= setting in cmdline.txt.
+# Use the kernel's default instead.
+disable_fw_kms_setup=1
+
+# Run in 64-bit mode
+arm_64bit=1
+
+# Disable compensation for displays with overscan
+disable_overscan=1
+
+# Run as fast as firmware / board allows
+arm_boost=1
+
+[cm5]
+dtoverlay=dwc2,dr_mode=host
+
+[all]
+# Enable uart0 on Pi5 (GPIO 14/15 - Pins 8/10)
+# mavlink-router /dev/ttyAMA0
+enable_uart=1
+dtoverlay=disable-bt
+dtoverlay=uart0-pi5
+
+# Enable uart3 on Pi5 (GPIO 8/9 - Pins 24/21)
+# micro_ros_agent /dev/ttyAMA3
+dtoverlay=uart3-pi5
+
+# SPI1 on GPIO 20 for LED control
+dtoverlay=spi1-1cs
+
+# Enable i2c-1 (GPIO 2/3 - Pins 3/5 - /dev/i2c-1)
+dtparam=i2c_arm=on
+
+# Enable i2c-2 (GPIO 4/5 - Pins 7/29 - /dev/i2c-2)
+dtoverlay=i2c2,pins_4_5
+
+# Arducam fixed-focus IMX708 on CAM1. vcm=0 disables the absent focus motor
+# (avoids dw9807 I2C stalls); rotation=0 corrects its 180-degree sensor mounting.
+# A genuine Pi Cam 3 needs the defaults instead (autofocus, rotation=180) below.
+dtoverlay=imx219,cam0
+dtoverlay=imx219,cam1
+
+# Pi cam 3 (genuine module)
+#dtoverlay=imx708,cam0
+#dtoverlay=imx708,cam1
+
+# Pi cam 2.1
+#dtoverlay=imx219,cam0
+#dtoverlay=imx219,cam1
+# ARK carrier control lines. CM5 leaves these pins pulled down, which
+# overpowers the carrier's 100K pull-ups: the TUSB2046 USB hub stays in reset
+# (descriptor reads fail -71) and PX4 never sees VBUS so it never starts its
+# USB MAVLink instance. The CM4 config sets the same three.
+gpio=26=op,dh
+gpio=25=op,dl
+gpio=27=op,dh
