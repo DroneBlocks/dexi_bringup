@@ -13,9 +13,7 @@ repositories:
   dexi_led:
     type: git
     url: https://github.com/DroneBlocks/dexi_led
-    # TEMPORARY: pinned to the pio LED branch for ark_cm5 bring-up.
-    # Revert to main once DroneBlocks/dexi_led#<pr> is merged.
-    version: feat/led-driver-pio
+    version: main
 
   dexi_interfaces:
     type: git
