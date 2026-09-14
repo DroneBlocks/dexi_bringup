@@ -8,9 +8,16 @@ source /home/dexi/dexi_ws/install/setup.bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${SCRIPT_DIR}/../config"
 
-# Detect hardware platform from device-tree model.
+# Platform selection. /etc/dexi-platform is written by the image build and is
+# authoritative: the device-tree model cannot tell a CM5 on the DroneBlocks
+# carrier from a CM5 on the ARK carrier, and they need different launch files.
+# Fall back to model detection for images built before the marker existed.
+PLATFORM=$(tr -d '[:space:]' < /etc/dexi-platform 2>/dev/null || true)
+
 HARDWARE_MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "unknown")
-if [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
+if [ -n "$PLATFORM" ]; then
+    echo "Platform from /etc/dexi-platform: $PLATFORM"
+elif [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
     PLATFORM="cm4"
 elif [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 5"* ]]; then
     PLATFORM="cm5"
@@ -88,6 +95,10 @@ case "$PLATFORM" in
     cm4)
         echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
         ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ;;
+    ark_cm5)
+        echo "ARK carrier + CM5, launching dexi_bringup_ark_cm5.launch.py"
+        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"

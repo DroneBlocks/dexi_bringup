@@ -1,0 +1,286 @@
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
+from ament_index_python.packages import get_package_share_directory
+import glob
+import os
+
+# Capture size and calibration are keyed on the sensor that actually bound,
+# not on a hardcoded path. A wrong overlay fails loudly (no camera); a wrong
+# calibration fails silently by biasing every AprilTag range, so it is the one
+# worth deriving. Sizes match each calibration file's own resolution.
+CSI_SENSORS = {
+    'imx219': {'width': 640, 'height': 480, 'calibration': 'picam_2.1_csi.yaml'},
+    'imx708': {'width': 640, 'height': 480, 'calibration': 'picam_3_arducam_640.yaml'},
+}
+
+
+def detect_csi_sensor():
+    for name in CSI_SENSORS:
+        if glob.glob('/sys/bus/i2c/drivers/%s/*-00*' % name):
+            return name
+    return None
+
+
+def select_camera(context, *args, **kwargs):
+    sensor = detect_csi_sensor()
+    if sensor is None:
+        return [LogInfo(msg='CAMERA: no CSI sensor bound - camera disabled')]
+
+    p = CSI_SENSORS[sensor]
+    calibration = 'file://' + os.path.join(
+        get_package_share_directory('dexi_camera'), 'config', p['calibration'])
+    return [
+        LogInfo(msg='CAMERA: %s %dx%d %s' % (sensor, p['width'], p['height'], p['calibration'])),
+        Node(
+            package='camera_ros',
+            executable='camera_node',
+            name='cam0',
+            remappings=[('image_raw', '/cam0/image_raw'),
+                        ('camera_info', '/cam0/camera_info')],
+            parameters=[{
+                'format': LaunchConfiguration('camera_format').perform(context),
+                'width': p['width'],
+                'height': p['height'],
+                'jpeg_quality': int(LaunchConfiguration('camera_jpeg_quality').perform(context)),
+                'camera_info_url': calibration,
+                'frame_id': 'camera',
+                'camera_name': 'cam0',
+            }],
+        ),
+    ]
+
+
+def generate_launch_description():
+    # Get the package directory
+    pkg_dexi_bringup = get_package_share_directory('dexi_bringup')
+    
+    # Create the launch description
+    ld = LaunchDescription()
+
+    # Declare the launch arguments
+    ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
+    ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
+    ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
+    ld.add_action(DeclareLaunchArgument('keyboard_control', default_value='false', description='Enable keyboard teleop control'))
+    ld.add_action(DeclareLaunchArgument('rosbridge', default_value='true', description='Enable ROS bridge'))
+    ld.add_action(DeclareLaunchArgument('camera', default_value='true', description='Enable camera'))
+    ld.add_action(DeclareLaunchArgument('camera_width', default_value='640', description='Camera width'))
+    ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
+    ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
+    ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
+    ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
+    ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
+
+    apriltags = LaunchConfiguration('apriltags')
+    servos = LaunchConfiguration('servos')
+    gpio = LaunchConfiguration('gpio')
+    offboard = LaunchConfiguration('offboard')
+    keyboard_control = LaunchConfiguration('keyboard_control')
+    rosbridge = LaunchConfiguration('rosbridge')
+    camera = LaunchConfiguration('camera')
+    camera_width = LaunchConfiguration('camera_width')
+    camera_height = LaunchConfiguration('camera_height')
+    camera_format = LaunchConfiguration('camera_format')
+    camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
+    yolo = LaunchConfiguration('yolo')
+    color_detection = LaunchConfiguration('color_detection')
+    
+    # Create micro_ros_agent node
+    micro_ros_agent = Node(
+        package='micro_ros_agent',
+        executable='micro_ros_agent',
+        name='micro_ros_agent',
+        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '3000000']
+    )
+    ld.add_action(micro_ros_agent)
+    
+    # Create rosbridge websocket node
+    rosbridge_websocket = Node(
+        package='rosbridge_server',
+        executable='rosbridge_websocket',
+        name='rosbridge_websocket',
+        parameters=[{
+            'port': 9090,
+            'address': '',
+            'ssl': False,
+            'certfile': '',
+            'keyfile': '',
+            'authenticate': False,
+        }],
+        condition=IfCondition(rosbridge)
+    )
+    ld.add_action(rosbridge_websocket)
+
+    # Platform params node — exposes platform identity and feature flags for the web dashboard
+    platform_params = Node(
+        package='dexi_bringup',
+        executable='platform_params_node',
+        name='dexi_platform_params',
+        parameters=[{
+            'dexi_platform': 'cm5',
+            'dexi_keyboard_control': keyboard_control,
+        }],
+        condition=IfCondition(rosbridge)
+    )
+    ld.add_action(platform_params)
+    
+    # Create rosapi node
+    rosapi = Node(
+        package='rosapi',
+        executable='rosapi_node',
+        name='rosapi',
+        condition=IfCondition(rosbridge)
+    )
+    ld.add_action(rosapi)
+    
+    # LED. The ARK carrier wires the strip to GPIO 12 (J24 pin 3), which SPI
+    # cannot reach — SPI1 MOSI is fixed to GPIO 20 — so drive it over the
+    # RP1 PIO instead.
+    led_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
+        ]),
+        launch_arguments={'led_driver': 'pio', 'led_pin': '12'}.items()
+    )
+    ld.add_action(led_launch)
+    
+    # Camera. Size and calibration come from the detected sensor, so they
+    # cannot drift apart; camera_width/camera_height are not forwarded.
+    ld.add_action(GroupAction([OpaqueFunction(function=select_camera)],
+                              condition=IfCondition(camera)))
+    
+    # AprilTag node.
+    # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
+    # without them the node detects tags in 2D but downstream consumers
+    # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
+    apriltag_node = Node(
+        package='apriltag_ros',
+        executable='apriltag_node',
+        name='apriltag_node',
+        remappings=[
+            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('camera_info', '/cam0/camera_info'),
+            ('detections', '/apriltag_detections')
+        ],
+        parameters=[{
+            'image_transport': 'compressed',
+            'family': '36h11',  # Standard AprilTag family
+            'size': 0.1016,  # Size of the tag in meters
+            'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            'tag.sizes': [0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016, 0.1016],
+            'tag.frames': [
+                'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
+                'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
+            ],
+        }],
+        condition=IfCondition(apriltags)
+    )
+    ld.add_action(apriltag_node)
+
+    # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
+    # Required for downstream nodes that look up tag TFs in body frame.
+    base_link_to_camera_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_camera_tf',
+        arguments=['0', '0', '0', '0', '1.5708', '0', 'base_link', 'camera'],
+        condition=IfCondition(apriltags)
+    )
+    ld.add_action(base_link_to_camera_tf)
+    
+    # Image throttle node for 2fps raw images - for YOLO detection
+    image_throttle_raw_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_raw_node',
+        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_raw_node)
+
+    # Image throttle node for 2fps compressed images - for AprilTag detection
+    image_throttle_compressed_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_compressed_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_compressed_node)
+    
+    
+    # GPIO launch file
+    gpio_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'tca9555_controller.launch.py')
+        ]),
+        condition=IfCondition(gpio)
+    )
+    ld.add_action(gpio_launch)
+
+    # DEXI servo controller launch file
+    servo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'servo_controller.launch.py')
+        ]),
+        condition=IfCondition(servos)
+    )
+    ld.add_action(servo_launch)
+    
+    # YOLO node
+    yolo_node = Node(
+        package='dexi_yolo',
+        executable='dexi_yolo_node_onnx.py',
+        name='dexi_yolo_node',
+        remappings=[
+            ('/cam0/image_raw', '/cam0/image_raw/raw_2hz')
+        ],
+        condition=IfCondition(yolo)
+    )
+    ld.add_action(yolo_node)
+
+    # Color detection node
+    color_detection_node = Node(
+        package='dexi_color_detection',
+        executable='color_detection_node.py',
+        name='color_detection_node',
+        parameters=[{
+            'detection_frequency': 5.0,
+            'min_contour_area': 500,
+            'publish_annotated_image': True,
+        }],
+        condition=IfCondition(color_detection)
+    )
+    ld.add_action(color_detection_node)
+
+    # Include offboard control nodes
+    offboard_manager_node = Node(
+        package='dexi_offboard',
+        executable='px4_offboard_manager',
+        name='px4_offboard_manager',
+        namespace='dexi',
+        output='screen',
+        parameters=[{
+            'keyboard_control_enabled': keyboard_control
+        }],
+        condition=IfCondition(offboard)
+    )
+    ld.add_action(offboard_manager_node)
+
+    keyboard_teleop_node = Node(
+        package='dexi_offboard',
+        executable='keyboard_teleop',
+        name='keyboard_teleop',
+        namespace='dexi',
+        output='screen',
+        prefix='xterm -e',
+        condition=IfCondition(keyboard_control)
+    )
+    ld.add_action(keyboard_teleop_node)
+
+    return ld 
