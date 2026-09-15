@@ -1,0 +1,20 @@
+# ARK carrier + CM4 platform defaults.
+#
+# The camera is a Pi Camera 2.1 (IMX219). 640x480 matches the calibration the
+# launch file loads; a resolution mismatch silently biases every AprilTag range.
+#
+# Servos and GPIO are off: the PCA9685 and TCA9555 are not on this carrier, and
+# a Pixhawk drives PWM directly.
+#
+# Note the key is "servo", singular — start.bash reads nodes.servo.enabled.
+#
+# Loaded by scripts/start.bash on top of dexi_config.yaml. Only overrides here.
+
+nodes:
+  camera:
+    width: 640
+    height: 480
+  servo:
+    enabled: false
+  gpio:
+    enabled: false
