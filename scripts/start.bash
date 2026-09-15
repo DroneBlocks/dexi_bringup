@@ -12,19 +12,41 @@ CONFIG_DIR="${SCRIPT_DIR}/../config"
 # authoritative: the device-tree model cannot tell a CM5 on the DroneBlocks
 # carrier from a CM5 on the ARK carrier, and they need different launch files.
 # Fall back to model detection for images built before the marker existed.
+#
+# The marker holds the *build target* name, which is not always the same string
+# as the platform arm below (ark_cm4 vs cm4). A marker naming a platform this
+# script has no arm for must not take the whole stack down silently, so an
+# unrecognized value degrades to model detection rather than launching nothing.
+HARDWARE_MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "unknown")
+
+platform_is_known() {
+    case "$1" in
+        cm4|ark_cm4|cm5|ark_cm5|pi5) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+platform_from_model() {
+    case "$HARDWARE_MODEL" in
+        *"Raspberry Pi Compute Module 4"*) echo "cm4" ;;
+        *"Raspberry Pi Compute Module 5"*) echo "cm5" ;;
+        *"Raspberry Pi 5"*) echo "pi5" ;;
+        *) echo "" ;;
+    esac
+}
+
 PLATFORM=$(tr -d '[:space:]' < /etc/dexi-platform 2>/dev/null || true)
 
-HARDWARE_MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "unknown")
-if [ -n "$PLATFORM" ]; then
+if [ -n "$PLATFORM" ] && platform_is_known "$PLATFORM"; then
     echo "Platform from /etc/dexi-platform: $PLATFORM"
-elif [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 4"* ]]; then
-    PLATFORM="cm4"
-elif [[ $HARDWARE_MODEL == *"Raspberry Pi Compute Module 5"* ]]; then
-    PLATFORM="cm5"
-elif [[ $HARDWARE_MODEL == *"Raspberry Pi 5"* ]]; then
-    PLATFORM="pi5"
 else
-    PLATFORM=""
+    if [ -n "$PLATFORM" ]; then
+        echo "WARNING: /etc/dexi-platform names unknown platform '$PLATFORM' - falling back to device-tree detection"
+    fi
+    PLATFORM=$(platform_from_model)
+    if [ -n "$PLATFORM" ]; then
+        echo "Platform from device-tree model ($HARDWARE_MODEL): $PLATFORM"
+    fi
 fi
 
 # Config file locations (search order: user -> platform -> base -> default).
@@ -92,7 +114,7 @@ echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, 
 
 # Launch the per-platform bringup
 case "$PLATFORM" in
-    cm4)
+    cm4|ark_cm4)
         echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
         ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
@@ -109,6 +131,6 @@ case "$PLATFORM" in
         ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     *)
-        echo "Unknown hardware: $HARDWARE_MODEL - no launch file specified for this platform"
+        echo "ERROR: no launch file for platform '${PLATFORM:-unknown}' (model: $HARDWARE_MODEL) - nothing will start"
         ;;
 esac

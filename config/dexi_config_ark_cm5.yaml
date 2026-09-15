@@ -13,7 +13,7 @@ nodes:
   camera:
     width: 640
     height: 480
-  servos:
+  servo:
     enabled: false
   gpio:
     enabled: false
