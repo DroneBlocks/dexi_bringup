@@ -64,6 +64,13 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
+            # Drop clients that stop answering. Tornado pings every interval and
+            # closes the connection if no pong arrives within
+            # websocket_ping_timeout (default 30s). The upstream default for the
+            # interval is 0.0, i.e. never ping, so a client that vanishes without
+            # a clean close stays "connected" forever and rosbridge keeps
+            # serializing and queuing messages for it. See DroneBlocks/dexi-os#44.
+            'websocket_ping_interval': 10.0,
         }],
         condition=IfCondition(rosbridge)
     )
