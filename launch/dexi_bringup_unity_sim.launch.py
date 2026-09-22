@@ -48,6 +48,10 @@ def generate_launch_description():
             'keyfile': '',
             'authenticate': False,
             'default_call_service_timeout': 120.0,  # Flight commands (takeoff, land) need >5s default
+            # See the hardware bringups and DroneBlocks/dexi-os#44. The sim runs
+            # the same rosbridge with the same never-ping default, so a browser
+            # tab closed without a clean disconnect leaks here too.
+            'websocket_ping_interval': 10.0,
         }],
         output='screen'
     )

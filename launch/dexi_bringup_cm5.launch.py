@@ -64,6 +64,13 @@ def generate_launch_description():
             'certfile': '',
             'keyfile': '',
             'authenticate': False,
+            # Drop clients that stop answering. Tornado pings every interval and
+            # closes the connection if no pong arrives within
+            # websocket_ping_timeout (default 30s). The upstream default for the
+            # interval is 0.0, i.e. never ping, so a client that vanishes without
+            # a clean close stays "connected" forever and rosbridge keeps
+            # serializing and queuing messages for it. See DroneBlocks/dexi-os#44.
+            'websocket_ping_interval': 10.0,
         }],
         condition=IfCondition(rosbridge)
     )
@@ -137,9 +144,9 @@ def generate_launch_description():
         parameters=[{
             'image_transport': 'compressed',
             'family': '36h11',  # Standard AprilTag family
-            'size': 0.1,  # Size of the tag in meters
+            'size': 0.1524,  # 6 in black square
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+            'tag.sizes': [0.1524] * 10,
             'tag.frames': [
                 'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
                 'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',

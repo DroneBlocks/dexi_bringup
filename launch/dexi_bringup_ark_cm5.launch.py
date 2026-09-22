@@ -1,11 +1,58 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
+import glob
 import os
+
+# Capture size and calibration are keyed on the sensor that actually bound,
+# not on a hardcoded path. A wrong overlay fails loudly (no camera); a wrong
+# calibration fails silently by biasing every AprilTag range, so it is the one
+# worth deriving. Sizes match each calibration file's own resolution.
+CSI_SENSORS = {
+    'imx219': {'width': 640, 'height': 480, 'calibration': 'picam_2.1_csi.yaml'},
+    'imx708': {'width': 640, 'height': 480, 'calibration': 'picam_3_arducam_640.yaml'},
+}
+
+
+def detect_csi_sensor():
+    for name in CSI_SENSORS:
+        if glob.glob('/sys/bus/i2c/drivers/%s/*-00*' % name):
+            return name
+    return None
+
+
+def select_camera(context, *args, **kwargs):
+    sensor = detect_csi_sensor()
+    if sensor is None:
+        return [LogInfo(msg='CAMERA: no CSI sensor bound - camera disabled')]
+
+    p = CSI_SENSORS[sensor]
+    calibration = 'file://' + os.path.join(
+        get_package_share_directory('dexi_camera'), 'config', p['calibration'])
+    return [
+        LogInfo(msg='CAMERA: %s %dx%d %s' % (sensor, p['width'], p['height'], p['calibration'])),
+        Node(
+            package='camera_ros',
+            executable='camera_node',
+            name='cam0',
+            remappings=[('image_raw', '/cam0/image_raw'),
+                        ('camera_info', '/cam0/camera_info')],
+            parameters=[{
+                'format': LaunchConfiguration('camera_format').perform(context),
+                'width': p['width'],
+                'height': p['height'],
+                'jpeg_quality': int(LaunchConfiguration('camera_jpeg_quality').perform(context)),
+                'camera_info_url': calibration,
+                'frame_id': 'camera',
+                'camera_name': 'cam0',
+            }],
+        ),
+    ]
+
 
 def generate_launch_description():
     # Get the package directory
@@ -48,7 +95,7 @@ def generate_launch_description():
         package='micro_ros_agent',
         executable='micro_ros_agent',
         name='micro_ros_agent',
-        arguments=['serial', '--dev', '/dev/ttyAMA4', '-b', '3000000']
+        arguments=['serial', '--dev', '/dev/ttyAMA3', '-b', '3000000']
     )
     ld.add_action(micro_ros_agent)
     
@@ -82,7 +129,7 @@ def generate_launch_description():
         executable='platform_params_node',
         name='dexi_platform_params',
         parameters=[{
-            'dexi_platform': 'ark_cm4',
+            'dexi_platform': 'cm5',
             'dexi_keyboard_control': keyboard_control,
         }],
         condition=IfCondition(rosbridge)
@@ -98,52 +145,23 @@ def generate_launch_description():
     )
     ld.add_action(rosapi)
     
-    # Include CM4 LED service launch file
+    # LED. The ARK carrier wires the strip to GPIO 12 (J24 pin 3), which SPI
+    # cannot reach — SPI1 MOSI is fixed to GPIO 20 — so drive it over the
+    # RP1 PIO instead.
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_cm4.launch.py')
-        ])
+            os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
+        ]),
+        launch_arguments={'led_driver': 'pio', 'led_pin': '12'}.items()
     )
     ld.add_action(led_launch)
     
-    # Camera node for CM4 using camera_ros
-    camera_node = Node(
-        package='camera_ros',
-        executable='camera_node',
-        name='cam0',
-        remappings=[
-            ('image_raw', '/cam0/image_raw'),
-            ('camera_info', '/cam0/camera_info')
-        ],
-        parameters=[{
-            'format': camera_format,
-            'width': camera_width,
-            'height': camera_height,
-            'sensor_mode': '1640:1232',
-            'jpeg_quality': camera_jpeg_quality,
-            'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_2.1_csi.yaml'),  # Use calibration file from dexi_camera package
-            'frame_id': 'camera',
-            'camera_name': 'cam0'
-        }],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(camera_node)
+    # Camera. Size and calibration come from the detected sensor, so they
+    # cannot drift apart; camera_width/camera_height are not forwarded.
+    ld.add_action(GroupAction([OpaqueFunction(function=select_camera)],
+                              condition=IfCondition(camera)))
     
-    # Image throttle node for 2fps compressed images - for AprilTag detection.
-    # AprilTag JPEG-decodes every frame it receives, so its CPU cost scales
-    # with frame rate, not detector.decimate. Feeding the full ~30fps stream
-    # pegged a CM4 core (~53%); throttling to 2Hz (matching the CM5 bringup)
-    # keeps detection responsive for precision landing while freeing the core.
-    image_throttle_compressed_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_compressed_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_compressed_node)
-
-    # AprilTag node - consumes the 2Hz throttled stream (see above).
+    # AprilTag node.
     # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
     # without them the node detects tags in 2D but downstream consumers
     # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
@@ -158,9 +176,8 @@ def generate_launch_description():
         ],
         parameters=[{
             'image_transport': 'compressed',
-            'family': '36h11',
+            'family': '36h11',  # Standard AprilTag family
             'size': 0.1524,  # 6 in black square
-            'detector.decimate': 4.0,
             'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
             'tag.sizes': [0.1524] * 10,
             'tag.frames': [
@@ -183,53 +200,53 @@ def generate_launch_description():
     )
     ld.add_action(base_link_to_camera_tf)
     
-    # YOLO throttle: 2 FPS for object detection
-    image_throttle_yolo_node = Node(
+    # Image throttle node for 2fps raw images - for YOLO detection
+    image_throttle_raw_node = Node(
         package='topic_tools',
         executable='throttle',
-        name='image_throttle_yolo_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_yolo'],
+        name='image_throttle_raw_node',
+        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
         condition=IfCondition(camera)
     )
-    ld.add_action(image_throttle_yolo_node)
+    ld.add_action(image_throttle_raw_node)
+
+    # Image throttle node for 2fps compressed images - for AprilTag detection
+    image_throttle_compressed_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_compressed_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_compressed_node)
     
     
     # GPIO launch file
     gpio_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_gpio'), 'launch', 'gpio.launch.py')
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'tca9555_controller.launch.py')
         ]),
         condition=IfCondition(gpio)
     )
     ld.add_action(gpio_launch)
 
-    # CM4 shares GPIO pins between servo PWM and gpio reader/writer; gpio wins
-    servo_pwm_launch = IncludeLaunchDescription(
+    # DEXI servo controller launch file
+    servo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('dexi_gpio'), 'launch', 'servo_pwm.launch.py')
+            os.path.join(get_package_share_directory('dexi_cpp'), 'launch', 'servo_controller.launch.py')
         ]),
-        condition=IfCondition(PythonExpression(["'", servos, "' == 'true' and '", gpio, "' != 'true'"]))
+        condition=IfCondition(servos)
     )
-    ld.add_action(servo_pwm_launch)
-
-    # YOLO node - optimized for Pi CM4
+    ld.add_action(servo_launch)
+    
+    # YOLO node
     yolo_node = Node(
         package='dexi_yolo',
         executable='dexi_yolo_node_onnx.py',
         name='dexi_yolo_node',
         remappings=[
-            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz_yolo')
+            ('/cam0/image_raw', '/cam0/image_raw/raw_2hz')
         ],
-        parameters=[{
-            'input_size': 320,           # Model trained at 320x320
-            'num_threads': 1,            # Single thread to avoid CPU contention
-            'detection_frequency': 2.0,  # Process 2 frames per second (matches throttle rate)
-            'use_letterbox': True,       # Enable to match training preprocessing (rect=False)
-            'confidence_threshold': 0.5, # Lowered from 0.65 (sigmoid fix allows proper filtering)
-            'nms_threshold': 0.4,
-            'verbose_logging': False,    # Disable verbose logging to save CPU
-            'max_detections': 10,        # Limit max detections to reduce processing
-        }],
         condition=IfCondition(yolo)
     )
     ld.add_action(yolo_node)
@@ -268,6 +285,7 @@ def generate_launch_description():
         name='keyboard_teleop',
         namespace='dexi',
         output='screen',
+        prefix='xterm -e',
         condition=IfCondition(keyboard_control)
     )
     ld.add_action(keyboard_teleop_node)
