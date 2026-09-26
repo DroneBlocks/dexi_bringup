@@ -12,3 +12,9 @@ nodes:
   camera:
     width: 640
     height: 480
+
+  # No PCA9685 here either. This platform shares the ark_cm4 bringup, whose
+  # servo node drives pigpio PWM directly, but the chip and the hat it sits
+  # on belong to the Pi 5.
+  servo:
+    enabled: false
