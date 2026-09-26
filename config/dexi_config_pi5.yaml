@@ -13,3 +13,7 @@ nodes:
   camera:
     width: 1280
     height: 720
+
+  # PCA9685 is on the DroneBlocks Pi 5 hat, the only platform that has it.
+  servo:
+    enabled: true

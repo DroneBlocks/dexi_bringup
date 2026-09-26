@@ -17,3 +17,8 @@ nodes:
   # missing device. Overrides nodes.gpio.enabled in the base config.
   gpio:
     enabled: false
+
+  # No PCA9685 on this carrier. Without this the servo node retries a chip
+  # that is not there and logs two errors on every boot.
+  servo:
+    enabled: false
