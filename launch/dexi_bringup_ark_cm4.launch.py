@@ -27,6 +27,10 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
+    ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
+    ld.add_action(DeclareLaunchArgument('yolo_classes', default_value='', description='Class names, required when yolo_model is a path'))
+    ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='2.0', description='Detection frequency in Hz'))
+    ld.add_action(DeclareLaunchArgument('yolo_threads', default_value='1', description='ONNX runtime CPU threads'))
     ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
 
     apriltags = LaunchConfiguration('apriltags')
@@ -41,6 +45,10 @@ def generate_launch_description():
     camera_format = LaunchConfiguration('camera_format')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
     yolo = LaunchConfiguration('yolo')
+    yolo_model = LaunchConfiguration('yolo_model')
+    yolo_classes = LaunchConfiguration('yolo_classes')
+    yolo_frequency = LaunchConfiguration('yolo_frequency')
+    yolo_threads = LaunchConfiguration('yolo_threads')
     color_detection = LaunchConfiguration('color_detection')
     
     # Create micro_ros_agent node
@@ -212,27 +220,21 @@ def generate_launch_description():
     )
     ld.add_action(servo_pwm_launch)
 
-    # YOLO node - optimized for Pi CM4
-    yolo_node = Node(
-        package='dexi_yolo',
-        executable='dexi_yolo_node_onnx.py',
-        name='dexi_yolo_node',
-        remappings=[
-            ('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_2hz_yolo')
-        ],
-        parameters=[{
-            'input_size': 320,           # Model trained at 320x320
-            'num_threads': 1,            # Single thread to avoid CPU contention
-            'detection_frequency': 2.0,  # Process 2 frames per second (matches throttle rate)
-            'use_letterbox': True,       # Enable to match training preprocessing (rect=False)
-            'confidence_threshold': 0.5, # Lowered from 0.65 (sigmoid fix allows proper filtering)
-            'nms_threshold': 0.4,
-            'verbose_logging': False,    # Disable verbose logging to save CPU
-            'max_detections': 10,        # Limit max detections to reduce processing
-        }],
+    # YOLO, via dexi_yolo's own launch file so the model profile, its class
+    # list and its input size stay together.
+    yolo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            os.path.join(get_package_share_directory('dexi_yolo'), 'launch', 'yolo_onnx_launch.py')
+        ]),
+        launch_arguments={
+            'model': yolo_model,
+            'classes': yolo_classes,
+            'detection_frequency': yolo_frequency,
+            'num_threads': yolo_threads,
+        }.items(),
         condition=IfCondition(yolo)
     )
-    ld.add_action(yolo_node)
+    ld.add_action(yolo_launch)
 
     # Color detection node
     color_detection_node = Node(
