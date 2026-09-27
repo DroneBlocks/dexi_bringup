@@ -102,6 +102,13 @@ YOLO_MODEL=$(get_config_value "yolo" "model" "avr_2026")
 YOLO_CLASSES=$(get_config_value "yolo" "classes" "")
 YOLO_FREQ=$(get_config_value "yolo" "detection_frequency" "2.0")
 YOLO_THREADS=$(get_config_value "yolo" "num_threads" "1")
+
+# ros2 launch rejects an empty value, so classes is only passed when set.
+# It is empty whenever yolo.model names a profile, which carries its own.
+YOLO_ARGS="yolo_model:=$YOLO_MODEL yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS"
+if [ -n "$YOLO_CLASSES" ]; then
+    YOLO_ARGS="$YOLO_ARGS yolo_classes:=$YOLO_CLASSES"
+fi
 APRILTAG_ENABLED=$(get_config_value "apriltag" "enabled" "false")
 CAMERA_ENABLED=$(get_config_value "camera" "enabled" "true")
 CAMERA_WIDTH=$(get_config_value "camera" "width" "640")
@@ -120,19 +127,19 @@ echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, 
 case "$PLATFORM" in
     cm4|ark_cm4)
         echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED yolo_model:="$YOLO_MODEL" yolo_classes:="$YOLO_CLASSES" yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     ark_cm5)
         echo "ARK carrier + CM5, launching dexi_bringup_ark_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED yolo_model:="$YOLO_MODEL" yolo_classes:="$YOLO_CLASSES" yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED yolo_model:="$YOLO_MODEL" yolo_classes:="$YOLO_CLASSES" yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     pi5)
         echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED yolo_model:="$YOLO_MODEL" yolo_classes:="$YOLO_CLASSES" yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     *)
         echo "ERROR: no launch file for platform '${PLATFORM:-unknown}' (model: $HARDWARE_MODEL) - nothing will start"
