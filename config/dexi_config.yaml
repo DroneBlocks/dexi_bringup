@@ -39,9 +39,10 @@ nodes:
   # omitted here so the value is not frozen into the seeded
   # ~/.dexi-config.yaml; set nodes.servo.enabled in
   # dexi_config_<platform>.yaml. Same reasoning as gpio above.
-  yolo:
-    enabled: false
-    confidence_threshold: 0.65
+  # yolo is platform-specific and off by default. Intentionally omitted
+  # here so the value is not frozen into the seeded ~/.dexi-config.yaml;
+  # set nodes.yolo.* in dexi_config_<platform>.yaml. Same reasoning as gpio
+  # and servo above.
 
 system:
   debug_mode: false
