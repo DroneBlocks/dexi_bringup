@@ -43,7 +43,11 @@ repositories:
   dexi_yolo:
     type: git
     url: https://github.com/droneblocks/dexi_yolo
-    version: main
+    # Pinned for v0.22. This commit carries avr2026n320.onnx (sha256
+    # e0f539160fb4c15badea..., byte-identical to avr-yolo's v6 output) and the
+    # models.yaml profiles. On `main` a model change upstream would silently
+    # alter the image between builds.
+    version: f55bb31aa8e2a890df07fd177e6bff2d82440adf
 
   dexi_ctf:
     type: git
