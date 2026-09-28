@@ -1,5 +1,9 @@
 [Unit]
 Description=DEXI ROS2 Bringup Service
+# The boards have no RTC. Without this the stack starts on the stale
+# saved clock and every log line before NTP lands is timestamped wrong.
+Wants=time-sync.target
+After=time-sync.target
 
 [Service]
 Type=simple
