@@ -39,10 +39,13 @@ nodes:
   # omitted here so the value is not frozen into the seeded
   # ~/.dexi-config.yaml; set nodes.servo.enabled in
   # dexi_config_<platform>.yaml. Same reasoning as gpio above.
-  # yolo is platform-specific and off by default. Intentionally omitted
-  # here so the value is not frozen into the seeded ~/.dexi-config.yaml;
-  # set nodes.yolo.* in dexi_config_<platform>.yaml. Same reasoning as gpio
-  # and servo above.
+  # Object detection. Change to true and restart dexi.service to turn it on.
+  # Which model runs, and how fast, is set per platform in
+  # dexi_config_<platform>.yaml. Only `enabled` belongs here: it is the one
+  # yolo key a user chooses, so it is the one worth seeding into
+  # ~/.dexi-config.yaml.
+  yolo:
+    enabled: false
 
 system:
   debug_mode: false
