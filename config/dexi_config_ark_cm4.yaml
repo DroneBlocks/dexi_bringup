@@ -26,4 +26,8 @@ nodes:
     enabled: false
     model: avr_2026
     detection_frequency: 2.0
-    num_threads: 1
+    # 2 threads, measured on an ARK CM4 at 2 Hz: 415 ms/frame on 1 thread
+    # against 262 ms on 2, for 0.83 vs 1.05 cores. One thread leaves 85 ms of
+    # slack in the 500 ms budget, two leaves 238 ms. Three and four are worse
+    # than two (309 ms, 456 ms) because they contend with the rest of the stack.
+    num_threads: 2
