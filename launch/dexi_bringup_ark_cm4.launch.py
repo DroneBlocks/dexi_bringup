@@ -191,15 +191,6 @@ def generate_launch_description():
     )
     ld.add_action(base_link_to_camera_tf)
     
-    # YOLO throttle: 2 FPS for object detection
-    image_throttle_yolo_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_yolo_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_yolo'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_yolo_node)
     
     
     # GPIO launch file

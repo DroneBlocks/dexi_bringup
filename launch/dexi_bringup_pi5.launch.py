@@ -295,15 +295,6 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_raw_node)
     
-    # YOLO throttle: 2 FPS for object detection
-    image_throttle_yolo_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_yolo_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz_yolo'],
-        condition=camera_and_yolo
-    )
-    ld.add_action(image_throttle_yolo_node)
     
     # DEXI servo controller launch file
     servo_launch = IncludeLaunchDescription(
