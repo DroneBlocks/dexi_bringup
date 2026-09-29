@@ -193,12 +193,7 @@ def generate_launch_description():
             # a clean close stays "connected" forever and rosbridge keeps
             # serializing and queuing messages for it. See DroneBlocks/dexi-os#44.
             'websocket_ping_interval': 10.0,
-            # rosbridge abandons a service call after this long no matter what
-            # timeout the caller asked for. The default is 5 s and the Blockly
-            # takeoff block takes about 6 s to reach altitude, so every takeoff
-            # reported a timeout to the GCS while the aircraft hovered correctly.
-            # Read-only at runtime, so it has to be set here.
-            'default_call_service_timeout': 120.0,
+            'default_call_service_timeout': 120.0,  # flight commands need more than the 5s default
         }],
         condition=IfCondition(rosbridge)
     )
