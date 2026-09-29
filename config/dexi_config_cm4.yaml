@@ -12,3 +12,18 @@ nodes:
   camera:
     width: 640
     height: 480
+
+  # No PCA9685 here either. This platform shares the ark_cm4 bringup, whose
+  # servo node drives pigpio PWM directly, but the chip and the hat it sits
+  # on belong to the Pi 5.
+  servo:
+    enabled: false
+
+  # Off by default. `model` names a profile in dexi_yolo's models/models.yaml:
+  # avr_2026, avr_2025 or coco. A path works too, and then `classes` is
+  # required and must be in training order.
+  yolo:
+    enabled: false
+    model: avr_2026
+    detection_frequency: 2.0
+    num_threads: 1

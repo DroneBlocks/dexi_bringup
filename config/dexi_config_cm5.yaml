@@ -17,3 +17,17 @@ nodes:
   # missing device. Overrides nodes.gpio.enabled in the base config.
   gpio:
     enabled: false
+
+  # No PCA9685 on this carrier. Without this the servo node retries a chip
+  # that is not there and logs two errors on every boot.
+  servo:
+    enabled: false
+
+  # Off by default. `model` names a profile in dexi_yolo's models/models.yaml:
+  # avr_2026, avr_2025 or coco. A path works too, and then `classes` is
+  # required and must be in training order.
+  yolo:
+    enabled: false
+    model: avr_2026
+    detection_frequency: 2.0
+    num_threads: 2

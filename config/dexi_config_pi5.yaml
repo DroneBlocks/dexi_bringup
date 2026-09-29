@@ -13,3 +13,16 @@ nodes:
   camera:
     width: 1280
     height: 720
+
+  # PCA9685 is on the DroneBlocks Pi 5 hat, the only platform that has it.
+  servo:
+    enabled: true
+
+  # Off by default. `model` names a profile in dexi_yolo's models/models.yaml:
+  # avr_2026, avr_2025 or coco. A path works too, and then `classes` is
+  # required and must be in training order.
+  yolo:
+    enabled: false
+    model: avr_2026
+    detection_frequency: 2.0
+    num_threads: 1

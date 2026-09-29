@@ -34,11 +34,18 @@ nodes:
     keyboard_control: false
   rosbridge:
     enabled: true
-  servo:
-    enabled: true
+  # servo (PCA9685) is platform-specific: the chip is on the DroneBlocks
+  # Pi 5 hat and is absent from the CM5 and ARK carriers. Intentionally
+  # omitted here so the value is not frozen into the seeded
+  # ~/.dexi-config.yaml; set nodes.servo.enabled in
+  # dexi_config_<platform>.yaml. Same reasoning as gpio above.
+  # Object detection. Change to true and restart dexi.service to turn it on.
+  # Which model runs, and how fast, is set per platform in
+  # dexi_config_<platform>.yaml. Only `enabled` belongs here: it is the one
+  # yolo key a user chooses, so it is the one worth seeding into
+  # ~/.dexi-config.yaml.
   yolo:
     enabled: false
-    confidence_threshold: 0.65
 
 system:
   debug_mode: false
