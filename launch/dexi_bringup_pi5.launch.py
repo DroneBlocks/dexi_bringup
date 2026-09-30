@@ -193,6 +193,7 @@ def generate_launch_description():
             # a clean close stays "connected" forever and rosbridge keeps
             # serializing and queuing messages for it. See DroneBlocks/dexi-os#44.
             'websocket_ping_interval': 10.0,
+            'default_call_service_timeout': 120.0,  # flight commands need more than the 5s default
         }],
         condition=IfCondition(rosbridge)
     )
