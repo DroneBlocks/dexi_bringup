@@ -2,7 +2,8 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 import glob
@@ -126,6 +127,8 @@ def generate_launch_description():
 
     # Declare the launch arguments
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='false', description='Launch tag_nav (AprilTag navigation primitives, dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_dexi5.yaml', description='tag_nav parameter file in dexi_apriltag/config (camera mount offset is per airframe)'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
@@ -274,6 +277,17 @@ def generate_launch_description():
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # tag_nav: center_on_tag / fly_until_tag / wait_for_tag / wait_for_offboard behind
+    # /dexi/tag_nav/execute. Lives in dexi_apriltag; needs the AprilTag node above and
+    # the offboard manager. Resolved only when enabled, so an image without the
+    # dexi_apriltag launch file still boots with tag_nav off.
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
 
     # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
     # Required for downstream nodes that look up tag TFs in body frame.

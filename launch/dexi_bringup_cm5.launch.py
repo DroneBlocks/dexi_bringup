@@ -1,8 +1,9 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -16,6 +17,8 @@ def generate_launch_description():
 
     # Declare the launch arguments
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='false', description='Launch tag_nav (AprilTag navigation primitives, dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_dexi5.yaml', description='tag_nav parameter file in dexi_apriltag/config (camera mount offset is per airframe)'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
@@ -137,7 +140,19 @@ def generate_launch_description():
     )
     ld.add_action(camera_node)
     
-    # AprilTag node.
+    # Second throttle for the AprilTag detector. 2 Hz is fine for YOLO but far
+    # too slow to servo on a tag (tag_nav, precision landing): 10 Hz off the
+    # ~13-25 Hz camera is what the DEXI 5 corridor flights used (2026-10).
+    image_throttle_apriltag_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_apriltag_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '10.0', '/cam0/image_raw/compressed_apriltag'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_apriltag_node)
+
+    # AprilTag node - consumes the 10 Hz throttled stream (see above).
     # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
     # without them the node detects tags in 2D but downstream consumers
     # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
@@ -146,7 +161,7 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed_apriltag'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
@@ -164,6 +179,17 @@ def generate_launch_description():
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # tag_nav: center_on_tag / fly_until_tag / wait_for_tag / wait_for_offboard behind
+    # /dexi/tag_nav/execute. Lives in dexi_apriltag; needs the AprilTag node above and
+    # the offboard manager. Resolved only when enabled, so an image without the
+    # dexi_apriltag launch file still boots with tag_nav off.
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
 
     # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
     # Required for downstream nodes that look up tag TFs in body frame.

@@ -11,6 +11,10 @@
 # Loaded by scripts/start.bash on top of dexi_config.yaml. Only overrides here.
 
 nodes:
+  # DEXI 5: AprilTag navigation on, with the DEXI 5 camera mount offset.
+  tag_nav:
+    enabled: true
+    config: tag_nav_dexi5.yaml
   camera:
     width: 640
     height: 480
