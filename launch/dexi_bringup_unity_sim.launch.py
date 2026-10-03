@@ -122,10 +122,26 @@ def generate_launch_description():
             'image_transport': 'compressed',  # Unity publishes compressed images via rosbridge
             'family': '36h11',
             'size': 0.15,  # Size of the tag in meters (matches Unity Home Tag scale)
+            # tag.ids/sizes/frames make apriltag_ros publish a TF per tag, which is what
+            # apriltag_odometry, tag_hop and tag_nav consume. Without them the sim only
+            # has 2D detections and none of the tag navigation can be tested here.
+            'tag.ids': list(range(20)),
+            'tag.sizes': [0.15] * 20,
+            'tag.frames': [f'tag36h11:{i}' for i in range(20)],
         }],
         output='screen'
     )
     ld.add_action(apriltag_node)
+
+    # Static transform: base_link -> camera (downward-facing mount, pitch 90 deg), as on
+    # the aircraft, so base_link -> tag lookups work in the sim too.
+    base_link_to_camera_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_camera_tf',
+        arguments=['0', '0', '0', '0', '1.5708', '0', 'base_link', 'camera'],
+    )
+    ld.add_action(base_link_to_camera_tf)
 
     # CTF Challenge Runner
     challenge_runner = Node(
