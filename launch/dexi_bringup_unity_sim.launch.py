@@ -120,9 +120,8 @@ def generate_launch_description():
             # tag.ids/sizes/frames make apriltag_ros publish a TF per tag, which is what
             # apriltag_odometry, tag_hop and tag_nav consume. Without them the sim only
             # has 2D detections and none of the tag navigation can be tested here.
-            'tag.ids': list(range(20)),
-            'tag.sizes': [0.15] * 20,
-            'tag.frames': [f'tag36h11:{i}' for i in range(20)],
+            # No tag.ids list: every tag36h11 id is published and framed tag36h11:<id>
+            # at the default size (apriltag_ros drops ids that are not in a given list).
         }],
         output='screen'
     )

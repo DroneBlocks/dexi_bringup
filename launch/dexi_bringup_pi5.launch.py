@@ -267,12 +267,9 @@ def generate_launch_description():
             'family': '36h11',  # Standard AprilTag family
             'size': 0.1524,  # 6 in black square
             'detector.decimate': 4.0,  # Decimate input image 4x to keep CPU in budget on Pi 5
-            'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1524] * 10,
-            'tag.frames': [
-                'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
-                'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
-            ],
+            # No tag.ids list: apriltag_ros drops every detection whose id is not listed,
+            # so a printed tag 46 read as "none". With no list every tag36h11 id is
+            # published, framed tag36h11:<id>, at the default size above.
         }],
         condition=IfCondition(apriltags)
     )
