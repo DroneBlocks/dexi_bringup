@@ -1,4 +1,9 @@
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import IfCondition
@@ -25,6 +30,11 @@ def generate_launch_description():
     # Create the launch description
     ld = LaunchDescription()
     ld.add_action(color_detection_arg)
+    # tag_nav (AprilTag navigation primitives) runs in the sim by default, with the sim
+    # camera mount, so the Node-RED flow, the blocks and the Python examples work out of
+    # the box. tag_nav:=false turns it off.
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='true', description='Launch tag_nav (dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_sim.yaml', description='tag_nav parameter file in dexi_apriltag/config'))
 
     # Note: micro_ros_agent runs in its own container via docker-compose
 
@@ -150,5 +160,12 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('color_detection'))
     )
     ld.add_action(color_detection_node)
+
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
 
     return ld
