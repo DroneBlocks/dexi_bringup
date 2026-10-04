@@ -9,19 +9,13 @@ def generate_launch_description():
     """
     Launch file for Unity simulation with DEXI.
     Starts rosbridge, LED visualization bridge, PX4 offboard manager,
-    and CTF challenge runner.
+    the AprilTag detector and color detection.
     Note: micro_ros_agent runs in a separate container via docker-compose.
 
     Launch arguments:
-        challenge: The challenge ID to auto-start (default: 'arm_basic')
-                   Examples: 'arm_basic', 'takeoff_basic', or '' for no auto-start
+        color_detection: Enable HSV color detection on the camera feed (default: true)
     """
     # Declare launch arguments
-    challenge_arg = DeclareLaunchArgument(
-        'challenge',
-        default_value='arm_basic',
-        description='Challenge ID to auto-start (e.g., arm_basic, takeoff_basic, or empty for none)'
-    )
     color_detection_arg = DeclareLaunchArgument(
         'color_detection',
         default_value='true',
@@ -30,7 +24,6 @@ def generate_launch_description():
 
     # Create the launch description
     ld = LaunchDescription()
-    ld.add_action(challenge_arg)
     ld.add_action(color_detection_arg)
 
     # Note: micro_ros_agent runs in its own container via docker-compose
@@ -144,18 +137,6 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '1.5708', '0', 'base_link', 'camera'],
     )
     ld.add_action(base_link_to_camera_tf)
-
-    # CTF Challenge Runner
-    challenge_runner = Node(
-        package='dexi_ctf',
-        executable='challenge_runner.py',
-        name='challenge_runner',
-        parameters=[{
-            'auto_start_challenge': LaunchConfiguration('challenge'),
-        }],
-        output='screen'
-    )
-    ld.add_action(challenge_runner)
 
     # Color detection node (subscribes to Unity camera feed)
     color_detection_node = Node(
