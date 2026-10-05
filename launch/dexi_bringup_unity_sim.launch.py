@@ -35,6 +35,10 @@ def generate_launch_description():
     # the box. tag_nav:=false turns it off.
     ld.add_action(DeclareLaunchArgument('tag_nav', default_value='true', description='Launch tag_nav (dexi_apriltag)'))
     ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_sim.yaml', description='tag_nav parameter file in dexi_apriltag/config'))
+    # YOLO on the sim camera at 1 Hz, one thread: about a tenth of a vCPU. yolo:=false turns it off.
+    ld.add_action(DeclareLaunchArgument('yolo', default_value='true', description='Launch dexi_yolo (ONNX) on the sim camera'))
+    ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
+    ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='1.0', description='YOLO detection frequency, Hz'))
 
     # Note: micro_ros_agent runs in its own container via docker-compose
 
@@ -167,5 +171,14 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('tag_nav'))
     )
     ld.add_action(tag_nav_launch)
+
+    yolo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_yolo'), 'launch', 'yolo_onnx_launch.py'])),
+        launch_arguments={'model': LaunchConfiguration('yolo_model'),
+                          'detection_frequency': LaunchConfiguration('yolo_frequency'),
+                          'num_threads': '1'}.items(),
+        condition=IfCondition(LaunchConfiguration('yolo'))
+    )
+    ld.add_action(yolo_launch)
 
     return ld
