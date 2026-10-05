@@ -58,9 +58,9 @@ def generate_launch_description():
             # See the hardware bringups and DroneBlocks/dexi-os#44. The sim runs
             # the same rosbridge with the same never-ping default, so a browser
             # tab closed without a clean disconnect leaks here too.
-            # The sim image's rosbridge (Humble) declares this as an integer; the Jazzy
-            # aircraft builds take a double. A float here kills rosbridge at launch.
-            'websocket_ping_interval': 10,
+            # The pinned rosbridge declares this a double, in the Jazzy sim image as on the
+            # aircraft. (The old Humble apt rosbridge wanted an integer.)
+            'websocket_ping_interval': 10.0,
         }],
         output='screen'
     )
