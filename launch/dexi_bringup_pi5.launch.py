@@ -2,7 +2,8 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 import glob
@@ -126,6 +127,8 @@ def generate_launch_description():
 
     # Declare the launch arguments
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='false', description='Launch tag_nav (AprilTag navigation primitives, dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_dexi5.yaml', description='tag_nav parameter file in dexi_apriltag/config (camera mount offset is per airframe)'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
@@ -247,9 +250,8 @@ def generate_launch_description():
     ld.add_action(image_throttle_apriltag_node)
 
     # AprilTag node - consumes the 10Hz throttled stream (see above).
-    # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
-    # without them the node detects tags in 2D but downstream consumers
-    # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
+    # Downstream consumers (apriltag_odometry, tag_hop, tag_nav, precision_landing)
+    # look up the tag36h11:<id> TFs it publishes.
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
@@ -264,16 +266,24 @@ def generate_launch_description():
             'family': '36h11',  # Standard AprilTag family
             'size': 0.1524,  # 6 in black square
             'detector.decimate': 4.0,  # Decimate input image 4x to keep CPU in budget on Pi 5
-            'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1524] * 10,
-            'tag.frames': [
-                'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
-                'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
-            ],
+            # No tag.ids list: apriltag_ros drops every detection whose id is not
+            # listed. Without one every tag36h11 id is published, framed
+            # tag36h11:<id>, at the default size above.
         }],
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # tag_nav: center_on_tag / fly_until_tag / wait_for_tag / wait_for_offboard behind
+    # /dexi/tag_nav/execute. Lives in dexi_apriltag; needs the AprilTag node above and
+    # the offboard manager. Resolved only when enabled, so an image without the
+    # dexi_apriltag launch file still boots with tag_nav off.
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
 
     # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
     # Required for downstream nodes that look up tag TFs in body frame.

@@ -68,6 +68,7 @@ _yaml_lookup() {
         in_nodes && /^  [a-zA-Z]/ && in_node { in_node=0 }
         in_node && /^    ${param_name}:/ {
             gsub(/^    ${param_name}: */, \"\")
+            sub(/ *#.*$/, \"\")
             gsub(/ *$/, \"\")
             gsub(/\"/, \"\")
             print
@@ -110,6 +111,10 @@ if [ -n "$YOLO_CLASSES" ]; then
     YOLO_ARGS="$YOLO_ARGS yolo_classes:=$YOLO_CLASSES"
 fi
 APRILTAG_ENABLED=$(get_config_value "apriltag" "enabled" "false")
+# tag_nav: the AprilTag navigation primitives behind /dexi/tag_nav/execute (dexi_apriltag).
+# The config file carries the camera mount offset, so it is per airframe.
+TAG_NAV_ENABLED=$(get_config_value "tag_nav" "enabled" "false")
+TAG_NAV_CONFIG=$(get_config_value "tag_nav" "config" "tag_nav_dexi5.yaml")
 CAMERA_ENABLED=$(get_config_value "camera" "enabled" "true")
 CAMERA_WIDTH=$(get_config_value "camera" "width" "640")
 CAMERA_HEIGHT=$(get_config_value "camera" "height" "480")
@@ -121,25 +126,25 @@ OFFBOARD_ENABLED=$(get_config_value "offboard" "enabled" "false")
 KEYBOARD_CONTROL_ENABLED=$(get_config_value "offboard" "keyboard_control" "false")
 ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "enabled" "true")
 
-echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, camera=$CAMERA_ENABLED (${CAMERA_WIDTH}x${CAMERA_HEIGHT}, $CAMERA_FORMAT, q$CAMERA_JPEG_QUALITY), servos=$SERVO_ENABLED, gpio=$GPIO_ENABLED, offboard=$OFFBOARD_ENABLED, keyboard_control=$KEYBOARD_CONTROL_ENABLED, rosbridge=$ROSBRIDGE_ENABLED"
+echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, tag_nav=$TAG_NAV_ENABLED ($TAG_NAV_CONFIG), camera=$CAMERA_ENABLED (${CAMERA_WIDTH}x${CAMERA_HEIGHT}, $CAMERA_FORMAT, q$CAMERA_JPEG_QUALITY), servos=$SERVO_ENABLED, gpio=$GPIO_ENABLED, offboard=$OFFBOARD_ENABLED, keyboard_control=$KEYBOARD_CONTROL_ENABLED, rosbridge=$ROSBRIDGE_ENABLED"
 
 # Launch the per-platform bringup
 case "$PLATFORM" in
     cm4|ark_cm4)
         echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     ark_cm5)
         echo "ARK carrier + CM5, launching dexi_bringup_ark_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     pi5)
         echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     *)
         echo "ERROR: no launch file for platform '${PLATFORM:-unknown}' (model: $HARDWARE_MODEL) - nothing will start"

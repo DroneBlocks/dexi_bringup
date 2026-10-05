@@ -1,7 +1,11 @@
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
@@ -9,19 +13,15 @@ def generate_launch_description():
     """
     Launch file for Unity simulation with DEXI.
     Starts rosbridge, LED visualization bridge, PX4 offboard manager,
-    and CTF challenge runner.
+    the AprilTag detector, tag_nav, color detection and YOLO.
     Note: micro_ros_agent runs in a separate container via docker-compose.
 
     Launch arguments:
-        challenge: The challenge ID to auto-start (default: 'arm_basic')
-                   Examples: 'arm_basic', 'takeoff_basic', or '' for no auto-start
+        color_detection: Enable HSV color detection on the camera feed (default: true)
+        tag_nav: Launch tag_nav with tag_nav_config (default: true, tag_nav_sim.yaml)
+        yolo: Launch dexi_yolo with yolo_model at yolo_frequency (default: true, avr_2026, 1 Hz)
     """
     # Declare launch arguments
-    challenge_arg = DeclareLaunchArgument(
-        'challenge',
-        default_value='arm_basic',
-        description='Challenge ID to auto-start (e.g., arm_basic, takeoff_basic, or empty for none)'
-    )
     color_detection_arg = DeclareLaunchArgument(
         'color_detection',
         default_value='true',
@@ -30,8 +30,16 @@ def generate_launch_description():
 
     # Create the launch description
     ld = LaunchDescription()
-    ld.add_action(challenge_arg)
     ld.add_action(color_detection_arg)
+    # tag_nav (AprilTag navigation primitives) runs in the sim by default, with the sim
+    # camera mount, so the Node-RED flow, the blocks and the Python examples work out of
+    # the box. tag_nav:=false turns it off.
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='true', description='Launch tag_nav (dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_sim.yaml', description='tag_nav parameter file in dexi_apriltag/config'))
+    # YOLO on the sim camera at 1 Hz, one thread: about a tenth of a vCPU. yolo:=false turns it off.
+    ld.add_action(DeclareLaunchArgument('yolo', default_value='true', description='Launch dexi_yolo (ONNX) on the sim camera'))
+    ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
+    ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='1.0', description='YOLO detection frequency, Hz'))
 
     # Note: micro_ros_agent runs in its own container via docker-compose
 
@@ -51,6 +59,7 @@ def generate_launch_description():
             # See the hardware bringups and DroneBlocks/dexi-os#44. The sim runs
             # the same rosbridge with the same never-ping default, so a browser
             # tab closed without a clean disconnect leaks here too.
+            # The pinned rosbridge declares this a double.
             'websocket_ping_interval': 10.0,
         }],
         output='screen'
@@ -122,22 +131,23 @@ def generate_launch_description():
             'image_transport': 'compressed',  # Unity publishes compressed images via rosbridge
             'family': '36h11',
             'size': 0.15,  # Size of the tag in meters (matches Unity Home Tag scale)
+            # No tag.ids list: apriltag_ros drops ids not in a given list. Without one,
+            # every tag36h11 id is published with a TF framed tag36h11:<id> at the
+            # default size, which apriltag_odometry, tag_hop and tag_nav look up.
         }],
         output='screen'
     )
     ld.add_action(apriltag_node)
 
-    # CTF Challenge Runner
-    challenge_runner = Node(
-        package='dexi_ctf',
-        executable='challenge_runner.py',
-        name='challenge_runner',
-        parameters=[{
-            'auto_start_challenge': LaunchConfiguration('challenge'),
-        }],
-        output='screen'
+    # Static transform: base_link -> camera (downward-facing mount, pitch 90 deg), as on
+    # the aircraft, so base_link -> tag lookups work in the sim too.
+    base_link_to_camera_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_camera_tf',
+        arguments=['0', '0', '0', '0', '1.5708', '0', 'base_link', 'camera'],
     )
-    ld.add_action(challenge_runner)
+    ld.add_action(base_link_to_camera_tf)
 
     # Color detection node (subscribes to Unity camera feed)
     color_detection_node = Node(
@@ -152,5 +162,21 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('color_detection'))
     )
     ld.add_action(color_detection_node)
+
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
+
+    yolo_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_yolo'), 'launch', 'yolo_onnx_launch.py'])),
+        launch_arguments={'model': LaunchConfiguration('yolo_model'),
+                          'detection_frequency': LaunchConfiguration('yolo_frequency'),
+                          'num_threads': '1'}.items(),
+        condition=IfCondition(LaunchConfiguration('yolo'))
+    )
+    ld.add_action(yolo_launch)
 
     return ld

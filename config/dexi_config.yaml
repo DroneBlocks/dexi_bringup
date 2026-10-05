@@ -18,6 +18,13 @@ nodes:
   apriltag:
     enabled: true
     max_tags: 10
+  # AprilTag navigation primitives (center_on_tag, fly_until_tag, wait_for_tag,
+  # wait_for_offboard) behind /dexi/tag_nav/execute, from dexi_apriltag. Needs
+  # nodes.apriltag and nodes.offboard. The config file carries the camera mount
+  # offset, so it is per airframe; the DEXI 5 platform configs turn it on.
+  tag_nav:
+    enabled: false
+    config: tag_nav_dexi5.yaml
   camera:
     enabled: true
     format: "XRGB8888"
