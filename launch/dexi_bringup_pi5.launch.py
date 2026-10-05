@@ -250,9 +250,8 @@ def generate_launch_description():
     ld.add_action(image_throttle_apriltag_node)
 
     # AprilTag node - consumes the 10Hz throttled stream (see above).
-    # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
-    # without them the node detects tags in 2D but downstream consumers
-    # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
+    # Downstream consumers (apriltag_odometry, tag_hop, tag_nav, precision_landing)
+    # look up the tag36h11:<id> TFs it publishes.
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
@@ -267,9 +266,9 @@ def generate_launch_description():
             'family': '36h11',  # Standard AprilTag family
             'size': 0.1524,  # 6 in black square
             'detector.decimate': 4.0,  # Decimate input image 4x to keep CPU in budget on Pi 5
-            # No tag.ids list: apriltag_ros drops every detection whose id is not listed,
-            # so a printed tag 46 read as "none". With no list every tag36h11 id is
-            # published, framed tag36h11:<id>, at the default size above.
+            # No tag.ids list: apriltag_ros drops every detection whose id is not
+            # listed. Without one every tag36h11 id is published, framed
+            # tag36h11:<id>, at the default size above.
         }],
         condition=IfCondition(apriltags)
     )

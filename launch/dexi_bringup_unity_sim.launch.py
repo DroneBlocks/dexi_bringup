@@ -6,7 +6,6 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
 from launch_ros.actions import Node
 
 
@@ -14,11 +13,13 @@ def generate_launch_description():
     """
     Launch file for Unity simulation with DEXI.
     Starts rosbridge, LED visualization bridge, PX4 offboard manager,
-    the AprilTag detector and color detection.
+    the AprilTag detector, tag_nav, color detection and YOLO.
     Note: micro_ros_agent runs in a separate container via docker-compose.
 
     Launch arguments:
         color_detection: Enable HSV color detection on the camera feed (default: true)
+        tag_nav: Launch tag_nav with tag_nav_config (default: true, tag_nav_sim.yaml)
+        yolo: Launch dexi_yolo with yolo_model at yolo_frequency (default: true, avr_2026, 1 Hz)
     """
     # Declare launch arguments
     color_detection_arg = DeclareLaunchArgument(
@@ -58,8 +59,7 @@ def generate_launch_description():
             # See the hardware bringups and DroneBlocks/dexi-os#44. The sim runs
             # the same rosbridge with the same never-ping default, so a browser
             # tab closed without a clean disconnect leaks here too.
-            # The pinned rosbridge declares this a double, in the Jazzy sim image as on the
-            # aircraft. (The old Humble apt rosbridge wanted an integer.)
+            # The pinned rosbridge declares this a double.
             'websocket_ping_interval': 10.0,
         }],
         output='screen'
@@ -131,11 +131,9 @@ def generate_launch_description():
             'image_transport': 'compressed',  # Unity publishes compressed images via rosbridge
             'family': '36h11',
             'size': 0.15,  # Size of the tag in meters (matches Unity Home Tag scale)
-            # tag.ids/sizes/frames make apriltag_ros publish a TF per tag, which is what
-            # apriltag_odometry, tag_hop and tag_nav consume. Without them the sim only
-            # has 2D detections and none of the tag navigation can be tested here.
-            # No tag.ids list: every tag36h11 id is published and framed tag36h11:<id>
-            # at the default size (apriltag_ros drops ids that are not in a given list).
+            # No tag.ids list: apriltag_ros drops ids not in a given list. Without one,
+            # every tag36h11 id is published with a TF framed tag36h11:<id> at the
+            # default size, which apriltag_odometry, tag_hop and tag_nav look up.
         }],
         output='screen'
     )
