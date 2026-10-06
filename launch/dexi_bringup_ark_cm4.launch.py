@@ -34,6 +34,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('yolo_classes', default_value='', description='Class names, required when yolo_model is a path'))
     ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='2.0', description='Detection frequency in Hz'))
     ld.add_action(DeclareLaunchArgument('yolo_threads', default_value='1', description='ONNX runtime CPU threads'))
+    ld.add_action(DeclareLaunchArgument('led_pin', default_value='12', description='LED data GPIO: 12 (LED Strip port) or 21 (GPIO port)'))
     ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
 
     apriltags = LaunchConfiguration('apriltags')
@@ -114,7 +115,8 @@ def generate_launch_description():
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_cm4.launch.py')
-        ])
+        ]),
+        launch_arguments={'led_pin': LaunchConfiguration('led_pin')}.items()
     )
     ld.add_action(led_launch)
     

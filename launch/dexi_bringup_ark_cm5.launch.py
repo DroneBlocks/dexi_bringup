@@ -67,6 +67,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('tag_nav', default_value='false', description='Launch tag_nav (AprilTag navigation primitives, dexi_apriltag)'))
     ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_dexi5.yaml', description='tag_nav parameter file in dexi_apriltag/config (camera mount offset is per airframe)'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
+    ld.add_action(DeclareLaunchArgument('led_pin', default_value='12', description='LED data GPIO: 12 (LED Strip port) or 21 (GPIO port)'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
     ld.add_action(DeclareLaunchArgument('keyboard_control', default_value='false', description='Enable keyboard teleop control'))
@@ -159,12 +160,12 @@ def generate_launch_description():
     
     # LED. The ARK carrier wires the strip to GPIO 12 (J24 pin 3), which SPI
     # cannot reach — SPI1 MOSI is fixed to GPIO 20 — so drive it over the
-    # RP1 PIO instead.
+    # RP1 PIO instead. led_pin 21 moves it to the GPIO port (J25 pin 2).
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_pi5.launch.py')
         ]),
-        launch_arguments={'led_driver': 'pio', 'led_pin': '12'}.items()
+        launch_arguments={'led_driver': 'pio', 'led_pin': LaunchConfiguration('led_pin')}.items()
     )
     ld.add_action(led_launch)
     
