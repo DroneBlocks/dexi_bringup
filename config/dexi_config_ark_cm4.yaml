@@ -15,6 +15,11 @@ nodes:
   tag_nav:
     enabled: true
     config: tag_nav_dexi5.yaml
+  # LED data GPIO. 12 is the LED Strip port (J24 pin 3). If that port is
+  # damaged, wire the ring to the GPIO port (J25: 5V, GPIO21, GND) and set
+  # pin: 21 in ~/.dexi-config.yaml.
+  led:
+    pin: 12
   camera:
     width: 640
     height: 480
