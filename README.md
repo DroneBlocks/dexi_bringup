@@ -74,7 +74,7 @@ All hardware launch files accept the same arguments. Defaults come from `~/.dexi
 | `yolo` | `false` | Enable YOLO object detection |
 | `servos` | `false` | Enable servo control (CM5/Pi5 only) |
 | `gpio` | `false` | Enable GPIO control (CM5/Pi5 only) |
-| `led_pin` | `12` | LED data GPIO, ARK carrier only: 12 (LED Strip port) or 21 (GPIO port) |
+| `led_pin` | `12` | LED data GPIO, ARK CM4 only: 12 (LED Strip port) or 21 (GPIO port) |
 
 ## Runtime Configuration
 
@@ -113,7 +113,7 @@ nodes:
     confidence_threshold: 0.65
 ```
 
-### LED pin (ARK carrier)
+### LED pin (ARK CM4)
 
 The LED ring's data line is GPIO 12 on the LED Strip port. If that port is damaged, wire the
 ring to the GPIO port instead (5V, GPIO21 and GND) and set:
@@ -124,7 +124,7 @@ nodes:
     pin: 21
 ```
 
-On a CM4 only GPIO 12 and 21 can drive the ring from the ARK ports.
+Only GPIO 12 and 21 can drive the ring from the ARK ports on a CM4.
 
 ### Applying Changes
 

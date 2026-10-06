@@ -137,7 +137,7 @@ case "$PLATFORM" in
         ;;
     ark_cm5)
         echo "ARK carrier + CM5, launching dexi_bringup_ark_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED led_pin:=$LED_PIN
+        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
