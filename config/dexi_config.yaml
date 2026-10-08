@@ -18,13 +18,13 @@ nodes:
   apriltag:
     enabled: true
     max_tags: 10
-  # AprilTag navigation primitives (center_on_tag, fly_until_tag, wait_for_tag,
-  # wait_for_offboard) behind /dexi/tag_nav/execute, from dexi_apriltag. Needs
-  # nodes.apriltag and nodes.offboard. The config file carries the camera mount
-  # offset, so it is per airframe; the DEXI 5 platform configs turn it on.
-  tag_nav:
-    enabled: false
-    config: tag_nav_dexi5.yaml
+  # tag_nav (AprilTag navigation behind /dexi/tag_nav/execute, from dexi_apriltag)
+  # is per airframe: the config file carries the camera mount offset. It is
+  # intentionally omitted here so the value is not frozen into the seeded
+  # ~/.dexi-config.yaml, where it would override the DEXI 5 platform configs that
+  # turn it on. Same reasoning as gpio below. start.bash defaults to off.
+  # telemetry (/dexi/telemetry, a 2 Hz JSON summary for dashboards) is on unless
+  # nodes.telemetry.enabled is false.
   camera:
     enabled: true
     format: "XRGB8888"
