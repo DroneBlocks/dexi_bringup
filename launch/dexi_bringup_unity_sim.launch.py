@@ -36,6 +36,9 @@ def generate_launch_description():
     # the box. tag_nav:=false turns it off.
     ld.add_action(DeclareLaunchArgument('tag_nav', default_value='true', description='Launch tag_nav (dexi_apriltag)'))
     ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_sim.yaml', description='tag_nav parameter file in dexi_apriltag/config'))
+    # Off until the sim image carries a dexi_cpp with telemetry_node; a missing
+    # executable aborts the whole launch. telemetry:=true turns it on.
+    ld.add_action(DeclareLaunchArgument('telemetry', default_value='false', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
     # YOLO on the sim camera at 1 Hz, one thread: about a tenth of a vCPU. yolo:=false turns it off.
     ld.add_action(DeclareLaunchArgument('yolo', default_value='true', description='Launch dexi_yolo (ONNX) on the sim camera'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
@@ -178,5 +181,17 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('yolo'))
     )
     ld.add_action(yolo_launch)
+
+    # /dexi/telemetry: a 2 Hz JSON summary of the PX4 topics for dashboards and
+    # Node-RED. Subscribing to /fmu/out directly through rosbridge costs about a
+    # core on a CM4; this node costs about 12%.
+    telemetry_node = Node(
+        package='dexi_cpp',
+        executable='telemetry_node',
+        name='telemetry',
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('telemetry'))
+    )
+    ld.add_action(telemetry_node)
 
     return ld

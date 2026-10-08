@@ -29,6 +29,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
+    ld.add_action(DeclareLaunchArgument('telemetry', default_value='true', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
     ld.add_action(DeclareLaunchArgument('yolo_classes', default_value='', description='Class names, required when yolo_model is a path'))
@@ -288,5 +289,17 @@ def generate_launch_description():
         condition=IfCondition(keyboard_control)
     )
     ld.add_action(keyboard_teleop_node)
+
+    # /dexi/telemetry: a 2 Hz JSON summary of the PX4 topics for dashboards and
+    # Node-RED. Subscribing to /fmu/out directly through rosbridge costs about a
+    # core on a CM4; this node costs about 12%.
+    telemetry_node = Node(
+        package='dexi_cpp',
+        executable='telemetry_node',
+        name='telemetry',
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('telemetry'))
+    )
+    ld.add_action(telemetry_node)
 
     return ld 
