@@ -294,7 +294,7 @@ def generate_launch_description():
 
     # /dexi/telemetry: a 2 Hz JSON summary of the PX4 topics for dashboards and
     # Node-RED. Subscribing to /fmu/out directly through rosbridge costs about a
-    # core on a CM4; this node costs about 12%.
+    # core on a CM4; this node costs about 4%.
     telemetry_node = Node(
         package='dexi_cpp',
         executable='telemetry_node',
