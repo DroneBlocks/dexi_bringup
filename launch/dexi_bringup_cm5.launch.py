@@ -177,7 +177,7 @@ def generate_launch_description():
     ld.add_action(apriltag_node)
 
     # tag_nav: center_on_tag / fly_until_tag / wait_for_tag / wait_for_offboard behind
-    # /dexi/tag_nav/execute. Lives in dexi_apriltag; needs the AprilTag node above and
+    # /dexi/tag_nav/command. Lives in dexi_apriltag; needs the AprilTag node above and
     # the offboard manager. Resolved only when enabled, so an image without the
     # dexi_apriltag launch file still boots with tag_nav off.
     tag_nav_launch = IncludeLaunchDescription(
