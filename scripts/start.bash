@@ -111,7 +111,7 @@ if [ -n "$YOLO_CLASSES" ]; then
     YOLO_ARGS="$YOLO_ARGS yolo_classes:=$YOLO_CLASSES"
 fi
 APRILTAG_ENABLED=$(get_config_value "apriltag" "enabled" "false")
-# tag_nav: the AprilTag navigation primitives behind /dexi/tag_nav/execute (dexi_apriltag).
+# tag_nav: the AprilTag navigation primitives behind /dexi/tag_nav/command (dexi_apriltag).
 # The config file carries the camera mount offset, so it is per airframe.
 TAG_NAV_ENABLED=$(get_config_value "tag_nav" "enabled" "false")
 TAG_NAV_CONFIG=$(get_config_value "tag_nav" "config" "tag_nav_dexi5.yaml")
