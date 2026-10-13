@@ -2,7 +2,8 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -16,6 +17,8 @@ def generate_launch_description():
 
     # Declare the launch arguments
     ld.add_action(DeclareLaunchArgument('apriltags', default_value='false', description='Enable AprilTag detection'))
+    ld.add_action(DeclareLaunchArgument('tag_nav', default_value='false', description='Launch tag_nav (AprilTag navigation primitives, dexi_apriltag)'))
+    ld.add_action(DeclareLaunchArgument('tag_nav_config', default_value='tag_nav_dexi5.yaml', description='tag_nav parameter file in dexi_apriltag/config (camera mount offset is per airframe)'))
     ld.add_action(DeclareLaunchArgument('servos', default_value='false', description='Enable servo control'))
     ld.add_action(DeclareLaunchArgument('gpio', default_value='false', description='Enable GPIO control'))
     ld.add_action(DeclareLaunchArgument('offboard', default_value='false', description='Enable offboard control'))
@@ -26,11 +29,13 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
+    ld.add_action(DeclareLaunchArgument('telemetry', default_value='true', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
     ld.add_action(DeclareLaunchArgument('yolo_classes', default_value='', description='Class names, required when yolo_model is a path'))
     ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='2.0', description='Detection frequency in Hz'))
     ld.add_action(DeclareLaunchArgument('yolo_threads', default_value='1', description='ONNX runtime CPU threads'))
+    ld.add_action(DeclareLaunchArgument('led_pin', default_value='12', description='LED data GPIO: 12 (LED Strip port) or 21 (GPIO port)'))
     ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
 
     apriltags = LaunchConfiguration('apriltags')
@@ -79,6 +84,7 @@ def generate_launch_description():
             # a clean close stays "connected" forever and rosbridge keeps
             # serializing and queuing messages for it. See DroneBlocks/dexi-os#44.
             'websocket_ping_interval': 10.0,
+            'default_call_service_timeout': 120.0,  # flight commands need more than the 5s default
         }],
         condition=IfCondition(rosbridge)
     )
@@ -110,7 +116,8 @@ def generate_launch_description():
     led_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(get_package_share_directory('dexi_led'), 'launch', 'led_service_cm4.launch.py')
-        ])
+        ]),
+        launch_arguments={'led_pin': LaunchConfiguration('led_pin')}.items()
     )
     ld.add_action(led_launch)
     
@@ -151,16 +158,26 @@ def generate_launch_description():
     )
     ld.add_action(image_throttle_compressed_node)
 
-    # AprilTag node - consumes the 2Hz throttled stream (see above).
-    # tag.ids/sizes/frames are required for apriltag_ros to publish TF poses;
-    # without them the node detects tags in 2D but downstream consumers
-    # (apriltag_odometry, tag_hop, precision_landing) can't look up TFs.
+    # Second throttle for the AprilTag detector. 2 Hz is fine for YOLO but too
+    # slow to servo on a tag (tag_nav, precision landing); 10 Hz is enough.
+    image_throttle_apriltag_node = Node(
+        package='topic_tools',
+        executable='throttle',
+        name='image_throttle_apriltag_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '10.0', '/cam0/image_raw/compressed_apriltag'],
+        condition=IfCondition(camera)
+    )
+    ld.add_action(image_throttle_apriltag_node)
+
+    # AprilTag node - consumes the 10 Hz throttled stream (see above).
+    # Downstream consumers (apriltag_odometry, tag_hop, tag_nav, precision_landing)
+    # look up the tag36h11:<id> TFs it publishes.
     apriltag_node = Node(
         package='apriltag_ros',
         executable='apriltag_node',
         name='apriltag_node',
         remappings=[
-            ('image_rect/compressed', '/cam0/image_raw/compressed_2hz'),
+            ('image_rect/compressed', '/cam0/image_raw/compressed_apriltag'),
             ('camera_info', '/cam0/camera_info'),
             ('detections', '/apriltag_detections')
         ],
@@ -169,16 +186,24 @@ def generate_launch_description():
             'family': '36h11',
             'size': 0.1524,  # 6 in black square
             'detector.decimate': 4.0,
-            'tag.ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            'tag.sizes': [0.1524] * 10,
-            'tag.frames': [
-                'tag36h11:0', 'tag36h11:1', 'tag36h11:2', 'tag36h11:3', 'tag36h11:4',
-                'tag36h11:5', 'tag36h11:6', 'tag36h11:7', 'tag36h11:8', 'tag36h11:9',
-            ],
+            # No tag.ids list: apriltag_ros drops every detection whose id is not
+            # listed. Without one every tag36h11 id is published, framed
+            # tag36h11:<id>, at the default size above.
         }],
         condition=IfCondition(apriltags)
     )
     ld.add_action(apriltag_node)
+
+    # tag_nav: center_on_tag / fly_until_tag / wait_for_tag / wait_for_offboard behind
+    # /dexi/tag_nav/command. Lives in dexi_apriltag; needs the AprilTag node above and
+    # the offboard manager. Resolved only when enabled, so an image without the
+    # dexi_apriltag launch file still boots with tag_nav off.
+    tag_nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
+        launch_arguments={'config': LaunchConfiguration('tag_nav_config')}.items(),
+        condition=IfCondition(LaunchConfiguration('tag_nav'))
+    )
+    ld.add_action(tag_nav_launch)
 
     # Static transform: base_link -> camera (downward-facing mount, pitch 90°).
     # Required for downstream nodes that look up tag TFs in body frame.
@@ -264,5 +289,17 @@ def generate_launch_description():
         condition=IfCondition(keyboard_control)
     )
     ld.add_action(keyboard_teleop_node)
+
+    # /dexi/telemetry: a 2 Hz JSON summary of the PX4 topics for dashboards and
+    # Node-RED. Subscribing to /fmu/out directly through rosbridge costs about a
+    # core on a CM4; this node costs about 4%.
+    telemetry_node = Node(
+        package='dexi_cpp',
+        executable='telemetry_node',
+        name='telemetry',
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('telemetry'))
+    )
+    ld.add_action(telemetry_node)
 
     return ld 
