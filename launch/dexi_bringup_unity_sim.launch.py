@@ -13,11 +13,12 @@ def generate_launch_description():
     """
     Launch file for Unity simulation with DEXI.
     Starts rosbridge, LED visualization bridge, PX4 offboard manager,
-    the AprilTag detector, tag_nav, color detection and YOLO.
+    the AprilTag detector, tag_nav, color detection, the bar counter and YOLO.
     Note: micro_ros_agent runs in a separate container via docker-compose.
 
     Launch arguments:
         color_detection: Enable HSV color detection on the camera feed (default: true)
+        bar_counter: Enable the bar counter on the camera feed (default: true)
         tag_nav: Launch tag_nav with tag_nav_config (default: true, tag_nav_sim.yaml)
         yolo: Launch dexi_yolo with yolo_model at yolo_frequency (default: true, avr_2026, 1 Hz)
     """
@@ -28,9 +29,16 @@ def generate_launch_description():
         description='Enable HSV color detection on camera feed'
     )
 
+    bar_counter_arg = DeclareLaunchArgument(
+        'bar_counter',
+        default_value='true',
+        description='Enable the bar counter on camera feed'
+    )
+
     # Create the launch description
     ld = LaunchDescription()
     ld.add_action(color_detection_arg)
+    ld.add_action(bar_counter_arg)
     # tag_nav (AprilTag navigation primitives) runs in the sim by default, with the sim
     # camera mount, so the Node-RED flow, the blocks and the Python examples work out of
     # the box. tag_nav:=false turns it off.
@@ -154,7 +162,7 @@ def generate_launch_description():
 
     # Color detection node (subscribes to Unity camera feed)
     color_detection_node = Node(
-        package='dexi_color_detection',
+        package='dexi_vision',
         executable='color_detection_node.py',
         name='color_detection_node',
         parameters=[{
@@ -165,6 +173,15 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('color_detection'))
     )
     ld.add_action(color_detection_node)
+
+    # Bar counter node (subscribes to Unity camera feed)
+    bar_counter_node = Node(
+        package='dexi_vision',
+        executable='bar_counter_node.py',
+        name='bar_counter_node',
+        condition=IfCondition(LaunchConfiguration('bar_counter'))
+    )
+    ld.add_action(bar_counter_node)
 
     tag_nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_apriltag'), 'launch', 'tag_nav.launch.py'])),
