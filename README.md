@@ -67,6 +67,7 @@ All hardware launch files accept the same arguments. Defaults come from `~/.dexi
 | `camera_height` | `480` | Camera height |
 | `camera_format` | `XRGB8888` | Camera pixel format |
 | `camera_jpeg_quality` | `60` | JPEG compression quality |
+| `bar_counter` | `false` | Enable the bar counter (`/bar_detections`) |
 | `color_detection` | `true` | Enable HSV color detection |
 | `offboard` | `false` | Enable PX4 offboard flight control |
 | `keyboard_control` | `false` | Enable keyboard teleop |
@@ -178,7 +179,7 @@ Hardware-specific configurations are stored in `config/`:
 - `dexi_offboard` - PX4 offboard flight control manager
 - `dexi_interfaces` - Custom message definitions
 - `dexi_camera` - Camera interface (Pi5)
-- `dexi_color_detection` - HSV color detection
+- `dexi_vision` - OpenCV vision nodes: color detection and bar counter
 - `dexi_yolo` - YOLO object detection
 - `apriltag_ros` - AprilTag detection
 - `camera_ros` - CSI camera interface (CM4/CM5)
@@ -244,7 +245,7 @@ Dennis Baldwin (db@droneblocks.io) - DroneBlocks
 - [dexi_led](https://github.com/DroneBlocks/dexi_led) - LED control service
 - [dexi_camera](https://github.com/DroneBlocks/dexi_camera) - Camera interface
 - [dexi_offboard](https://github.com/DroneBlocks/dexi_offboard) - PX4 offboard flight control
-- [dexi_color_detection](https://github.com/DroneBlocks/dexi_color_detection) - HSV color detection
+- [dexi_vision](https://github.com/DroneBlocks/dexi_vision) - OpenCV vision nodes: color detection and bar counter
 - [dexi_yolo](https://github.com/droneblocks/dexi_yolo) - YOLO object detection
 - [dexi_interfaces](https://github.com/DroneBlocks/dexi_interfaces) - Custom message definitions
 - [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) - WebSocket bridge for web interfaces
