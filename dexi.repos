@@ -1,9 +1,11 @@
 repositories:
 
-  dexi_tools:
-    type: git
-    url: https://github.com/DroneBlocks/dexi_tools
-    version: main
+  # Off: never built or launched (firmware flashing service). To ship it,
+  # uncomment and add a colcon build line to dexi-os provision.sh.
+  # dexi_tools:
+  #   type: git
+  #   url: https://github.com/DroneBlocks/dexi_tools
+  #   version: main
 
   dexi_cpp:
     type: git
@@ -49,15 +51,19 @@ repositories:
     # alter the image between builds.
     version: f55bb31aa8e2a890df07fd177e6bff2d82440adf
 
-  dexi_ctf:
-    type: git
-    url: https://github.com/droneblocks/dexi_ctf
-    version: main
+  # Off: never built or launched (CTF challenge validators). To ship it,
+  # uncomment and add a colcon build line to dexi-os provision.sh.
+  # dexi_ctf:
+  #   type: git
+  #   url: https://github.com/droneblocks/dexi_ctf
+  #   version: main
 
-  dexi_llm:
-    type: git
-    url: https://github.com/DroneBlocks/dexi_llm
-    version: main
+  # Off: never built or launched (on-device LLM commands). To ship it,
+  # uncomment and add a colcon build line to dexi-os provision.sh.
+  # dexi_llm:
+  #   type: git
+  #   url: https://github.com/DroneBlocks/dexi_llm
+  #   version: main
 
   dexi_vision:
     type: git
