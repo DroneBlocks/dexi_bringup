@@ -148,6 +148,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('yolo_frequency', default_value='2.0', description='Detection frequency in Hz'))
     ld.add_action(DeclareLaunchArgument('yolo_threads', default_value='1', description='ONNX runtime CPU threads'))
     ld.add_action(DeclareLaunchArgument('color_detection', default_value='false', description='Enable HSV color detection (opt-in)'))
+    ld.add_action(DeclareLaunchArgument('bar_counter', default_value='false', description='Enable the bar counter (opt-in)'))
 
     apriltags = LaunchConfiguration('apriltags')
     servos = LaunchConfiguration('servos')
@@ -168,6 +169,7 @@ def generate_launch_description():
     yolo_frequency = LaunchConfiguration('yolo_frequency')
     yolo_threads = LaunchConfiguration('yolo_threads')
     color_detection = LaunchConfiguration('color_detection')
+    bar_counter = LaunchConfiguration('bar_counter')
     
     # Create micro_ros_agent node
     micro_ros_agent = Node(
@@ -344,7 +346,7 @@ def generate_launch_description():
 
     # Color detection node
     color_detection_node = Node(
-        package='dexi_color_detection',
+        package='dexi_vision',
         executable='color_detection_node.py',
         name='color_detection_node',
         parameters=[{
@@ -355,6 +357,15 @@ def generate_launch_description():
         condition=IfCondition(color_detection)
     )
     ld.add_action(color_detection_node)
+
+    # Bar counter node
+    bar_counter_node = Node(
+        package='dexi_vision',
+        executable='bar_counter_node.py',
+        name='bar_counter_node',
+        condition=IfCondition(bar_counter)
+    )
+    ld.add_action(bar_counter_node)
 
     # Include offboard control nodes
     offboard_manager_node = Node(
