@@ -17,7 +17,6 @@
 nodes:
   apriltag:
     enabled: true
-    max_tags: 10
   # tag_nav (AprilTag navigation behind /dexi/tag_nav/command, from dexi_apriltag)
   # is per airframe: the config file carries the camera mount offset. It is
   # intentionally omitted here so the value is not frozen into the seeded
