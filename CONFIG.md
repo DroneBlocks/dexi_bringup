@@ -43,7 +43,6 @@ sudo reboot
 - **`nodes.apriltag.enabled`**: Enable/disable AprilTag detection
   - `true`: Start AprilTag detection node (default)
   - `false`: Skip AprilTag node
-  - `max_tags`: Maximum tags to detect simultaneously
 
 - **`nodes.led.enabled`**: Enable/disable LED control
   - `true`: Start LED controller node (default)
