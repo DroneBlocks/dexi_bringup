@@ -17,7 +17,6 @@
 nodes:
   apriltag:
     enabled: true
-    max_tags: 10
   # tag_nav (AprilTag navigation behind /dexi/tag_nav/command, from dexi_apriltag)
   # is per airframe: the config file carries the camera mount offset. It is
   # intentionally omitted here so the value is not frozen into the seeded
@@ -52,6 +51,11 @@ nodes:
   # yolo key a user chooses, so it is the one worth seeding into
   # ~/.dexi-config.yaml.
   yolo:
+    enabled: false
+  # Bar counter (dexi_vision): reads the bar images on the AVR 2026 bridge cups
+  # and publishes bars_1/2/3 on /bar_detections. Change to true and restart
+  # dexi.service to turn it on.
+  bar_counter:
     enabled: false
 
 system:

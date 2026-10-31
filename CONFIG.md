@@ -31,6 +31,10 @@ sudo reboot
   - `false`: Skip YOLO node (default)
   - `confidence_threshold`: Detection confidence threshold (0.0-1.0)
 
+- **`nodes.bar_counter.enabled`**: Enable/disable the bar counter (dexi_vision)
+  - `true`: Count the bars on the disc under the camera and publish bars_1/2/3 on `/bar_detections`
+  - `false`: Skip the bar counter node (default)
+
 - **`nodes.camera.enabled`**: Enable/disable camera node
   - `true`: Start camera node (default)
   - `false`: Skip camera node
@@ -39,7 +43,6 @@ sudo reboot
 - **`nodes.apriltag.enabled`**: Enable/disable AprilTag detection
   - `true`: Start AprilTag detection node (default)
   - `false`: Skip AprilTag node
-  - `max_tags`: Maximum tags to detect simultaneously
 
 - **`nodes.led.enabled`**: Enable/disable LED control
   - `true`: Start LED controller node (default)

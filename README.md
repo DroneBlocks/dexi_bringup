@@ -93,7 +93,6 @@ The `nodes` section controls feature toggles:
 nodes:
   apriltag:
     enabled: true
-    max_tags: 10
   camera:
     enabled: true
     width: 640
