@@ -134,6 +134,7 @@ def generate_launch_description():
             'format': camera_format,
             'width': camera_width,
             'height': camera_height,
+            'sensor_mode': '2304:1296',  # full-sensor binned mode; default picks the 1536x864 center crop
             'jpeg_quality': camera_jpeg_quality,
             'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_3_arducam_640.yaml'),  # Use calibration file from dexi_camera package
             'frame_id': 'camera',
