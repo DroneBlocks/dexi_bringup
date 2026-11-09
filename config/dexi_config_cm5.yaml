@@ -10,8 +10,8 @@
 
 nodes:
   camera:
-    width: 640
-    height: 480
+    width: 768
+    height: 432
   # The CM5 carrier does not populate the TCA9555 I2C GPIO expander.
   # Disable the controller so it doesn't spam "Remote I/O error" on a
   # missing device. Overrides nodes.gpio.enabled in the base config.
