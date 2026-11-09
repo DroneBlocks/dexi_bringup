@@ -2,7 +2,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, OpaqueFunction, LogInfo, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
@@ -157,8 +157,6 @@ def generate_launch_description():
     keyboard_control = LaunchConfiguration('keyboard_control')
     rosbridge = LaunchConfiguration('rosbridge')
     camera = LaunchConfiguration('camera')
-    camera_and_yolo = IfCondition(PythonExpression(
-        ["'", LaunchConfiguration('camera'), "' == 'true' and '", LaunchConfiguration('yolo'), "' == 'true'"]))
     camera_width = LaunchConfiguration('camera_width')
     camera_height = LaunchConfiguration('camera_height')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
@@ -299,16 +297,6 @@ def generate_launch_description():
     )
     ld.add_action(base_link_to_camera_tf)
 
-    # Image throttle node for 2fps raw images - for YOLO detection
-    image_throttle_raw_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_raw_node',
-        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
-        condition=camera_and_yolo
-    )
-    ld.add_action(image_throttle_raw_node)
-    
     
     # DEXI servo controller launch file
     servo_launch = IncludeLaunchDescription(
