@@ -122,6 +122,13 @@ CAMERA_WIDTH=$(get_config_value "camera" "width" "640")
 CAMERA_HEIGHT=$(get_config_value "camera" "height" "480")
 CAMERA_FORMAT=$(get_config_value "camera" "format" "XRGB8888")
 CAMERA_JPEG_QUALITY=$(get_config_value "camera" "jpeg_quality" "60")
+# camera.calibration: a dexi_camera/config YAML name without .yaml (CM5 only).
+# Unset keeps the launch default; picam_3_wide_768x432 for the IMX708 Wide.
+CAMERA_CALIBRATION=$(get_config_value "camera" "calibration" "")
+CAMERA_CAL_ARGS=""
+if [ -n "$CAMERA_CALIBRATION" ]; then
+    CAMERA_CAL_ARGS="camera_calibration:=$CAMERA_CALIBRATION"
+fi
 SERVO_ENABLED=$(get_config_value "servo" "enabled" "true")
 GPIO_ENABLED=$(get_config_value "gpio" "enabled" "true")
 OFFBOARD_ENABLED=$(get_config_value "offboard" "enabled" "false")
@@ -144,7 +151,7 @@ case "$PLATFORM" in
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY $CAMERA_CAL_ARGS gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED
         ;;
     pi5)
         echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"

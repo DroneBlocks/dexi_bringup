@@ -67,6 +67,7 @@ All hardware launch files accept the same arguments. Defaults come from `~/.dexi
 | `camera_height` | `480` | Camera height |
 | `camera_format` | `XRGB8888` | Camera pixel format |
 | `camera_jpeg_quality` | `60` | JPEG compression quality |
+| `camera_calibration` | `picam_3_arducam_768x432` | Calibration file in `dexi_camera/config` (no `.yaml`); `picam_3_wide_768x432` for the IMX708 Wide |
 | `bar_counter` | `false` | Enable the bar counter (`/bar_detections`) |
 | `color_detection` | `true` | Enable HSV color detection |
 | `offboard` | `false` | Enable PX4 offboard flight control |
