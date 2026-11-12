@@ -3,7 +3,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -29,6 +29,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
+    ld.add_action(DeclareLaunchArgument('camera_calibration', default_value='picam_3_arducam_768x432', description='Calibration YAML in dexi_camera/config, without .yaml (picam_3_arducam_wide_768x432 for the IMX708 Wide)'))
     ld.add_action(DeclareLaunchArgument('telemetry', default_value='true', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
@@ -49,6 +50,7 @@ def generate_launch_description():
     camera_height = LaunchConfiguration('camera_height')
     camera_format = LaunchConfiguration('camera_format')
     camera_jpeg_quality = LaunchConfiguration('camera_jpeg_quality')
+    camera_calibration = LaunchConfiguration('camera_calibration')
     yolo = LaunchConfiguration('yolo')
     yolo_model = LaunchConfiguration('yolo_model')
     yolo_classes = LaunchConfiguration('yolo_classes')
@@ -136,7 +138,12 @@ def generate_launch_description():
             'height': camera_height,
             'sensor_mode': '2304:1296',  # full-sensor binned mode; default picks the 1536x864 center crop
             'jpeg_quality': camera_jpeg_quality,
-            'camera_info_url': 'file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', 'picam_3_arducam_768x432.yaml'),  # Use calibration file from dexi_camera package
+            # tuple = concatenated string (a list would become a string array)
+            'camera_info_url': (
+                TextSubstitution(text='file://' + os.path.join(get_package_share_directory('dexi_camera'), 'config', '')),
+                camera_calibration,
+                TextSubstitution(text='.yaml'),
+            ),
             'frame_id': 'camera',
             'camera_name': 'cam0'
         }],
