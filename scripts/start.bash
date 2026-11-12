@@ -123,12 +123,39 @@ CAMERA_HEIGHT=$(get_config_value "camera" "height" "480")
 CAMERA_FORMAT=$(get_config_value "camera" "format" "XRGB8888")
 CAMERA_JPEG_QUALITY=$(get_config_value "camera" "jpeg_quality" "60")
 # camera.calibration: a dexi_camera/config YAML name without .yaml (CM5 only).
-# Unset keeps the launch default; picam_3_wide_768x432 for the IMX708 Wide.
+# Set it to pin a file. Unset, the sensor variant the kernel driver reports picks
+# one (the driver reads the module ID: imx708 vs imx708_wide). Detection cannot
+# tell an Arducam from a Raspberry Pi module, and the calibrations are 768x432
+# only, so any other sensor, size or platform keeps the launch default.
 CAMERA_CALIBRATION=$(get_config_value "camera" "calibration" "")
+CAMERA_CAL_SOURCE="config"
+if [ -z "$CAMERA_CALIBRATION" ]; then
+    CAMERA_CAL_SOURCE="launch default"
+    if [ "$PLATFORM" = "cm5" ] && [ "$CAMERA_ENABLED" = "true" ] && [ "${CAMERA_WIDTH}x${CAMERA_HEIGHT}" = "768x432" ]; then
+        SENSOR=""
+        # The sensor can probe a little after boot; give it up to 5 s.
+        for _ in 1 2 3 4 5; do
+            SENSOR=$(cat /sys/class/video4linux/v4l-subdev*/name 2>/dev/null | grep -m1 '^imx' || true)
+            [ -n "$SENSOR" ] && break
+            sleep 1
+        done
+        case "$SENSOR" in
+            imx708)      CAMERA_CALIBRATION="picam_3_arducam_768x432" ;;
+            imx708_wide) CAMERA_CALIBRATION="picam_3_arducam_wide_768x432" ;;
+        esac
+        if [ -n "$CAMERA_CALIBRATION" ]; then
+            CAMERA_CAL_SOURCE="detected $SENSOR"
+        else
+            echo "WARNING: no calibration for sensor '${SENSOR:-none}', using the launch default"
+            CAMERA_CAL_SOURCE="launch default, sensor ${SENSOR:-none}"
+        fi
+    fi
+fi
 CAMERA_CAL_ARGS=""
 if [ -n "$CAMERA_CALIBRATION" ]; then
     CAMERA_CAL_ARGS="camera_calibration:=$CAMERA_CALIBRATION"
 fi
+echo "Camera calibration: ${CAMERA_CALIBRATION:-launch default} ($CAMERA_CAL_SOURCE)"
 SERVO_ENABLED=$(get_config_value "servo" "enabled" "true")
 GPIO_ENABLED=$(get_config_value "gpio" "enabled" "true")
 OFFBOARD_ENABLED=$(get_config_value "offboard" "enabled" "false")

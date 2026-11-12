@@ -29,7 +29,7 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_height', default_value='480', description='Camera height'))
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
-    ld.add_action(DeclareLaunchArgument('camera_calibration', default_value='picam_3_arducam_768x432', description='Calibration YAML in dexi_camera/config, without .yaml (picam_3_wide_768x432 for the IMX708 Wide)'))
+    ld.add_action(DeclareLaunchArgument('camera_calibration', default_value='picam_3_arducam_768x432', description='Calibration YAML in dexi_camera/config, without .yaml (picam_3_arducam_wide_768x432 for the IMX708 Wide)'))
     ld.add_action(DeclareLaunchArgument('telemetry', default_value='true', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
