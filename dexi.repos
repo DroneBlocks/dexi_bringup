@@ -62,7 +62,7 @@ repositories:
   dexi_vision:
     type: git
     url: https://github.com/DroneBlocks/dexi_vision
-    version: main
+    version: v0.2.1
 
 
   apriltag:
