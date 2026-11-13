@@ -3,42 +3,42 @@ repositories:
   dexi_tools:
     type: git
     url: https://github.com/DroneBlocks/dexi_tools
-    version: main
+    version: 02d8ec86a62cb33ad9c902d68b385a970e549475
 
   dexi_cpp:
     type: git
     url: https://github.com/DroneBlocks/dexi_cpp
-    version: main
+    version: 4927c6cc4b4bdaaa425515662662f2382ae3f30b
 
   dexi_led:
     type: git
     url: https://github.com/DroneBlocks/dexi_led
-    version: main
+    version: 2095b9765d0c2e3136ef1e4cc4ee8445e6628186
 
   dexi_interfaces:
     type: git
     url: https://github.com/DroneBlocks/dexi_interfaces
-    version: main
+    version: 8aceac52ff79a4273bc0d8605801f716f1341e2e
 
   dexi_offboard:
     type: git
     url: https://github.com/DroneBlocks/dexi_offboard
-    version: main
+    version: c4227f68ea4f215cb2fbf0061a7006fdf6191a48
 
   dexi_apriltag:
     type: git
     url: https://github.com/DroneBlocks/dexi_apriltag
-    version: main
+    version: 1cab9030643f15e55b93b01eef30004579502a8f
 
   dexi_gpio:
     type: git
     url: https://github.com/DroneBlocks/dexi_gpio
-    version: main
+    version: c5af04f1eca6451edce5e403e2ff3e3c835cf48c
 
   dexi_camera:
     type: git
     url: https://github.com/DroneBlocks/dexi_camera
-    version: main
+    version: 54dd1b832297099087d12cb00b6a613092cea16a
 
   dexi_yolo:
     type: git
@@ -52,12 +52,12 @@ repositories:
   dexi_ctf:
     type: git
     url: https://github.com/droneblocks/dexi_ctf
-    version: main
+    version: fbafeff292a49d7b2f3847cab263f3b251258356
 
   dexi_llm:
     type: git
     url: https://github.com/DroneBlocks/dexi_llm
-    version: main
+    version: a21aa666ebeb9695f66862a8577c6792fd67a4eb
 
   dexi_vision:
     type: git
@@ -86,22 +86,22 @@ repositories:
   async_web_server_cpp:
     type: git
     url: https://github.com/fkie/async_web_server_cpp
-    version: ros2-develop
+    version: be0ca7ba5d7e36f9dc563ece7333f367e160be31
 
   vision_opencv:
     type: git
     url: https://github.com/ros-perception/vision_opencv
-    version: rolling
+    version: 50f6f1feccc65dd2ef87f863cb812a8aa0789062
 
   web_video_server:
     type: git
     url: https://github.com/RobotWebTools/web_video_server
-    version: ros2
+    version: 5c60fad378bb439e9ca283de5a4e58f32e5384ef
 
   camera_ros:
     type: git
     url: https://github.com/christianrauch/camera_ros
-    version: main
+    version: 40f2976fd06fd30183e0c7331a15282e50f0e9b5
 
   rosbridge:
     type: git
@@ -111,24 +111,24 @@ repositories:
   image_transport_plugins:
     type: git
     url: https://github.com/ros-perception/image_transport_plugins
-    version: jazzy
+    version: 4ea32edbf7b9c70a655be5e2f41cc5d7bae5ef5a
 
   px4_msgs:
     type: git
     url: https://github.com/px4/px4_msgs
-    version: release/1.16
+    version: 392e831c1f659429ca83902e66820d7094591410
 
   micro-ROS-Agent:
     type: git
     url: https://github.com/micro-ROS/micro-ROS-Agent
-    version: jazzy
+    version: 7c932329ad5591ef23942ef1962534258c16b000
 
   micro_ros_msgs:
     type: git
     url: https://github.com/micro-ROS/micro_ros_msgs
-    version: jazzy
+    version: b1ef85201e5545d3e07b73f4628bb15836062573
 
   topic_tools:
     type: git
     url: https://github.com/ros-tooling/topic_tools
-    version: jazzy
+    version: 462af78b06ad8baafc27ce09cb3dfee96421cfab
