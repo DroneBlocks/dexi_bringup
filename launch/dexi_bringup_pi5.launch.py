@@ -299,15 +299,6 @@ def generate_launch_description():
     )
     ld.add_action(base_link_to_camera_tf)
 
-    # Image throttle node for 2fps raw images - for YOLO detection
-    image_throttle_raw_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_raw_node',
-        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
-        condition=camera_and_yolo
-    )
-    ld.add_action(image_throttle_raw_node)
     
     
     # DEXI servo controller launch file
