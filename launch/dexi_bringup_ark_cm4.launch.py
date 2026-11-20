@@ -30,6 +30,9 @@ def generate_launch_description():
     ld.add_action(DeclareLaunchArgument('camera_format', default_value='XRGB8888', description='Camera format'))
     ld.add_action(DeclareLaunchArgument('camera_jpeg_quality', default_value='60', description='Camera JPEG quality'))
     ld.add_action(DeclareLaunchArgument('telemetry', default_value='true', description='Publish /dexi/telemetry (2 Hz summary for dashboards)'))
+    ld.add_action(DeclareLaunchArgument('capture_media', default_value='true', description='Photo and video capture (dexi_capture_media); needs the camera'))
+    ld.add_action(DeclareLaunchArgument('capture_media_photo_aux', default_value='0', description='RC aux channel (1-6) that takes a photo; 0 = off'))
+    ld.add_action(DeclareLaunchArgument('capture_media_video_aux', default_value='0', description='RC aux channel (1-6) that records video while high; 0 = off'))
     ld.add_action(DeclareLaunchArgument('yolo', default_value='false', description='Enable YOLO detection'))
     ld.add_action(DeclareLaunchArgument('yolo_model', default_value='avr_2026', description='dexi_yolo model profile or .onnx path'))
     ld.add_action(DeclareLaunchArgument('yolo_classes', default_value='', description='Class names, required when yolo_model is a path'))
@@ -312,5 +315,19 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('telemetry'))
     )
     ld.add_action(telemetry_node)
+
+    # capture_media: photos and video from the GCS or an RC switch, saved to
+    # /home/dexi/dexi_media and served on :8090 (dexi_capture_media). Records
+    # from the camera stream, so it only runs with the camera. Resolved only
+    # when enabled, so an image without the package still boots.
+    capture_media_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare('dexi_capture_media'), 'launch', 'capture_media.launch.py'])),
+        launch_arguments={
+            'photo_aux_index': LaunchConfiguration('capture_media_photo_aux'),
+            'video_aux_index': LaunchConfiguration('capture_media_video_aux'),
+        }.items(),
+        condition=IfCondition(PythonExpression(["'", LaunchConfiguration('capture_media'), "' == 'true' and '", camera, "' == 'true'"]))
+    )
+    ld.add_action(capture_media_launch)
 
     return ld 

@@ -129,26 +129,31 @@ KEYBOARD_CONTROL_ENABLED=$(get_config_value "offboard" "keyboard_control" "false
 ROSBRIDGE_ENABLED=$(get_config_value "rosbridge" "enabled" "true")
 LED_PIN=$(get_config_value "led" "pin" "12")
 TELEMETRY_ENABLED=$(get_config_value "telemetry" "enabled" "true")
+# capture_media: photos/video from the GCS or an RC switch (dexi_capture_media).
+# The aux settings are PX4 aux slots 1-6 (RC_MAP_AUXn); 0 leaves that switch off.
+CAPTURE_MEDIA_ENABLED=$(get_config_value "capture_media" "enabled" "true")
+CAPTURE_MEDIA_PHOTO_AUX=$(get_config_value "capture_media" "photo_aux_index" "0")
+CAPTURE_MEDIA_VIDEO_AUX=$(get_config_value "capture_media" "video_aux_index" "0")
 
-echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, bar_counter=$BAR_COUNTER_ENABLED, tag_nav=$TAG_NAV_ENABLED ($TAG_NAV_CONFIG), camera=$CAMERA_ENABLED (${CAMERA_WIDTH}x${CAMERA_HEIGHT}, $CAMERA_FORMAT, q$CAMERA_JPEG_QUALITY), servos=$SERVO_ENABLED, gpio=$GPIO_ENABLED, offboard=$OFFBOARD_ENABLED, keyboard_control=$KEYBOARD_CONTROL_ENABLED, rosbridge=$ROSBRIDGE_ENABLED, led_pin=$LED_PIN, telemetry=$TELEMETRY_ENABLED"
+echo "Configuration loaded (platform=${PLATFORM:-unknown}): yolo=$YOLO_ENABLED, apriltags=$APRILTAG_ENABLED, bar_counter=$BAR_COUNTER_ENABLED, tag_nav=$TAG_NAV_ENABLED ($TAG_NAV_CONFIG), camera=$CAMERA_ENABLED (${CAMERA_WIDTH}x${CAMERA_HEIGHT}, $CAMERA_FORMAT, q$CAMERA_JPEG_QUALITY), servos=$SERVO_ENABLED, gpio=$GPIO_ENABLED, offboard=$OFFBOARD_ENABLED, keyboard_control=$KEYBOARD_CONTROL_ENABLED, rosbridge=$ROSBRIDGE_ENABLED, led_pin=$LED_PIN, telemetry=$TELEMETRY_ENABLED, capture_media=$CAPTURE_MEDIA_ENABLED (photo aux $CAPTURE_MEDIA_PHOTO_AUX, video aux $CAPTURE_MEDIA_VIDEO_AUX)"
 
 # Launch the per-platform bringup
 case "$PLATFORM" in
     cm4|ark_cm4)
         echo "Detected CM4 hardware, launching dexi_bringup_ark_cm4.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED led_pin:=$LED_PIN telemetry:=$TELEMETRY_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm4.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED led_pin:=$LED_PIN telemetry:=$TELEMETRY_ENABLED capture_media:=$CAPTURE_MEDIA_ENABLED capture_media_photo_aux:=$CAPTURE_MEDIA_PHOTO_AUX capture_media_video_aux:=$CAPTURE_MEDIA_VIDEO_AUX
         ;;
     ark_cm5)
         echo "ARK carrier + CM5, launching dexi_bringup_ark_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_ark_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED capture_media:=$CAPTURE_MEDIA_ENABLED capture_media_photo_aux:=$CAPTURE_MEDIA_PHOTO_AUX capture_media_video_aux:=$CAPTURE_MEDIA_VIDEO_AUX
         ;;
     cm5)
         echo "Detected CM5 hardware, launching dexi_bringup_cm5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_cm5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED capture_media:=$CAPTURE_MEDIA_ENABLED capture_media_photo_aux:=$CAPTURE_MEDIA_PHOTO_AUX capture_media_video_aux:=$CAPTURE_MEDIA_VIDEO_AUX
         ;;
     pi5)
         echo "Detected Pi5 hardware, launching dexi_bringup_pi5.launch.py"
-        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED
+        ros2 launch dexi_bringup dexi_bringup_pi5.launch.py yolo:=$YOLO_ENABLED $YOLO_ARGS apriltags:=$APRILTAG_ENABLED bar_counter:=$BAR_COUNTER_ENABLED tag_nav:=$TAG_NAV_ENABLED tag_nav_config:=$TAG_NAV_CONFIG camera:=$CAMERA_ENABLED camera_width:=$CAMERA_WIDTH camera_height:=$CAMERA_HEIGHT camera_format:=$CAMERA_FORMAT camera_jpeg_quality:=$CAMERA_JPEG_QUALITY gpio:=$GPIO_ENABLED servos:=$SERVO_ENABLED offboard:=$OFFBOARD_ENABLED keyboard_control:=$KEYBOARD_CONTROL_ENABLED rosbridge:=$ROSBRIDGE_ENABLED telemetry:=$TELEMETRY_ENABLED capture_media:=$CAPTURE_MEDIA_ENABLED capture_media_photo_aux:=$CAPTURE_MEDIA_PHOTO_AUX capture_media_video_aux:=$CAPTURE_MEDIA_VIDEO_AUX
         ;;
     *)
         echo "ERROR: no launch file for platform '${PLATFORM:-unknown}' (model: $HARDWARE_MODEL) - nothing will start"

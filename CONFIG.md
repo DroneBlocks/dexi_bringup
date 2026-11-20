@@ -49,6 +49,14 @@ sudo reboot
   - `false`: Skip LED node
   - `brightness`: LED brightness level (0.0-1.0)
 
+- **`nodes.capture_media.enabled`**: Photo and video capture ([dexi_capture_media](https://github.com/DroneBlocks/dexi_capture_media))
+  - `true`: Start the capture node (default). Needs the camera. Files are saved to `/home/dexi/dexi_media`, and the GCS camera tab gets photo and record buttons and a Media tab.
+  - `false`: Skip it
+  - `photo_aux_index`: PX4 aux slot (1-6) for a momentary button: a tap takes a photo, holding it for 3 s starts or stops a recording (the LED ring blinks red while recording); `0` = off (default)
+  - `video_aux_index`: PX4 aux slot (1-6) that records while the switch is high; `0` = off (default)
+
+  To use a RadioMaster button or switch, assign it to a spare channel, map that channel to an aux slot in PX4 (on a DEXI 5, the photo button is CH8: `RC_MAP_AUX1 = 8`), then set the slot number here. Check `RC_MAP_ARM_SW`, `RC_MAP_FLTMODE` and `RC_MAP_KILL_SW` first so you don't reuse one of those channels (a DEXI 5 uses 5, 6 and 7; the flight kit has its kill switch on 8), and don't share an aux slot with `tag_nav`'s `engage_aux_index`.
+
 ### System Settings
 - **`system.debug_mode`**: Enable debug logging
   - `true`: Verbose debug output

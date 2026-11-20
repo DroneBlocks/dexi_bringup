@@ -57,6 +57,14 @@ nodes:
   # dexi.service to turn it on.
   bar_counter:
     enabled: false
+  # Photo and video capture (dexi_capture_media), from the GCS camera tab or an
+  # RC switch. Files go to /home/dexi/dexi_media. To use a RadioMaster button
+  # or switch, map its channel to a PX4 aux slot (RC_MAP_AUX1..6) and put that
+  # slot number here; 0 leaves the switch off.
+  capture_media:
+    enabled: true
+    photo_aux_index: 0   # momentary button: tap for a photo, hold 3 s to start/stop recording
+    video_aux_index: 0   # 2-position switch: records while high
 
 system:
   debug_mode: false

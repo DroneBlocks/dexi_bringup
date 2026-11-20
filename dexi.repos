@@ -64,6 +64,11 @@ repositories:
     url: https://github.com/DroneBlocks/dexi_vision
     version: main
 
+  dexi_capture_media:
+    type: git
+    url: https://github.com/DroneBlocks/dexi_capture_media
+    version: main
+
 
   apriltag:
     type: git
