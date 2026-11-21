@@ -1,9 +1,9 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetRemap
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch.conditions import IfCondition
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -201,26 +201,21 @@ def generate_launch_description():
     )
     ld.add_action(base_link_to_camera_tf)
     
-    # Image throttle node for 2fps raw images - for YOLO detection
-    image_throttle_raw_node = Node(
+    # One 6 Hz stream for the 2 Hz detectors (YOLO, bar counter). Each of them
+    # used to take the full 30 fps stream and drop 28 of every 30 frames, which
+    # cost each node about 5% of a CM5 core just to receive frames. 6 Hz keeps
+    # three frames per detection slot; both nodes keep a fixed schedule, so they
+    # still run at their detection_frequency. Runs only if one of them is on.
+    image_throttle_detector_node = Node(
         package='topic_tools',
         executable='throttle',
-        name='image_throttle_raw_node',
-        arguments=['messages', '/cam0/image_raw', '2.0', '/cam0/image_raw/raw_2hz'],
-        condition=IfCondition(camera)
+        name='image_throttle_detector_node',
+        arguments=['messages', '/cam0/image_raw/compressed', '6.0', '/cam0/image_raw/compressed_detector'],
+        condition=IfCondition(PythonExpression(
+            ["'", camera, "' == 'true' and ('", yolo, "' == 'true' or '", bar_counter, "' == 'true')"]))
     )
-    ld.add_action(image_throttle_raw_node)
+    ld.add_action(image_throttle_detector_node)
 
-    # Image throttle node for 2fps compressed images - for AprilTag detection
-    image_throttle_compressed_node = Node(
-        package='topic_tools',
-        executable='throttle',
-        name='image_throttle_compressed_node',
-        arguments=['messages', '/cam0/image_raw/compressed', '2.0', '/cam0/image_raw/compressed_2hz'],
-        condition=IfCondition(camera)
-    )
-    ld.add_action(image_throttle_compressed_node)
-    
     
     # GPIO launch file
     gpio_launch = IncludeLaunchDescription(
@@ -254,7 +249,10 @@ def generate_launch_description():
         }.items(),
         condition=IfCondition(yolo)
     )
-    ld.add_action(yolo_launch)
+    ld.add_action(GroupAction([
+        SetRemap('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_detector'),
+        yolo_launch,
+    ]))
 
     # Color detection node
     color_detection_node = Node(
@@ -275,6 +273,7 @@ def generate_launch_description():
         package='dexi_vision',
         executable='bar_counter_node.py',
         name='bar_counter_node',
+        remappings=[('/cam0/image_raw/compressed', '/cam0/image_raw/compressed_detector')],
         condition=IfCondition(bar_counter)
     )
     ld.add_action(bar_counter_node)

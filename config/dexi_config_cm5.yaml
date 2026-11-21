@@ -30,4 +30,7 @@ nodes:
     enabled: false
     model: avr_2026
     detection_frequency: 2.0
-    num_threads: 2
+    # 1 thread: same 2 Hz output and detections as 2 threads for ~3% less of a
+    # core and ~2 C cooler on a CM5 bench; 4 threads doubled YOLO's CPU and
+    # soft-throttled the SoC (dexi-bench weekend soak, 2026-11-21).
+    num_threads: 1
