@@ -23,7 +23,7 @@ repositories:
   dexi_offboard:
     type: git
     url: https://github.com/DroneBlocks/dexi_offboard
-    version: fe0b662e1353d422ba48d4fbb1adb26398e7c98c
+    version: c4227f68ea4f215cb2fbf0061a7006fdf6191a48
 
   dexi_apriltag:
     type: git
@@ -47,7 +47,7 @@ repositories:
     # e0f539160fb4c15badea..., byte-identical to avr-yolo's v6 output) and the
     # models.yaml profiles. On `main` a model change upstream would silently
     # alter the image between builds.
-    version: ff3c7f86fdf98046c0b588b6106387b6ef41ef39
+    version: 135f5c0d49ed5571d8df29396f22fff2d4639556
 
   dexi_ctf:
     type: git
@@ -62,7 +62,7 @@ repositories:
   dexi_vision:
     type: git
     url: https://github.com/DroneBlocks/dexi_vision
-    version: d48d2846cfaba5cf747ce741058fb1f6e695aa08
+    version: 13f66df42a6ebd55145857c02263bd6e169a3743
 
 
   apriltag:
