@@ -103,10 +103,11 @@ YOLO_MODEL=$(get_config_value "yolo" "model" "avr_2026")
 YOLO_CLASSES=$(get_config_value "yolo" "classes" "")
 YOLO_FREQ=$(get_config_value "yolo" "detection_frequency" "2.0")
 YOLO_THREADS=$(get_config_value "yolo" "num_threads" "1")
+YOLO_BACKEND=$(get_config_value "yolo" "backend" "onnx")
 
 # ros2 launch rejects an empty value, so classes is only passed when set.
 # It is empty whenever yolo.model names a profile, which carries its own.
-YOLO_ARGS="yolo_model:=$YOLO_MODEL yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS"
+YOLO_ARGS="yolo_model:=$YOLO_MODEL yolo_frequency:=$YOLO_FREQ yolo_threads:=$YOLO_THREADS yolo_backend:=$YOLO_BACKEND"
 if [ -n "$YOLO_CLASSES" ]; then
     YOLO_ARGS="$YOLO_ARGS yolo_classes:=$YOLO_CLASSES"
 fi
